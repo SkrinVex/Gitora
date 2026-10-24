@@ -1,0 +1,206 @@
+{
+  "@@locale": "ru",
+  "appName": "Gitora",
+  "appTagline": "Powerful Git. Beautifully Simple.",
+
+  "navDashboard": "Главная",
+  "navChanges": "Изменения",
+  "navHistory": "История",
+  "navBranches": "Ветки",
+  "navRemotes": "Репозитории",
+  "navStashes": "Тайники",
+  "navSettings": "Настройки",
+
+  "openRepository": "Открыть репозиторий",
+  "cloneRepository": "Клонировать репозиторий",
+  "newRepository": "Создать репозиторий",
+  "recentRepositories": "Недавние репозитории",
+  "favorites": "Избранное",
+  "noRecentRepositories": "Нет недавних репозиториев. Откройте или клонируйте проект, чтобы начать работу.",
+  "searchRepositories": "Поиск репозиториев...",
+  "removeRecent": "Удалить из недавних",
+  "markFavorite": "Добавить в избранное",
+  "unmarkFavorite": "Убрать из избранного",
+  "openInExplorer": "Показать в проводнике",
+  "openInTerminal": "Открыть в терминале",
+  "openInEditor": "Открыть в редакторе кода",
+
+  "workingTree": "Рабочая копия",
+  "stagedChanges": "Индексированные изменения",
+  "unstagedChanges": "Неиндексированные изменения",
+  "stageAll": "Индексировать всё",
+  "unstageAll": "Снять индексацию со всех",
+  "discardAll": "Отменить все изменения",
+  "commit": "Закоммитить",
+  "commitToBranch": "Коммит в ветку {branch}",
+  "@commitToBranch": {
+    "placeholders": {
+      "branch": { "type": "String" }
+    }
+  },
+  "commitSummary": "Краткое сообщение коммита",
+  "commitDescription": "Подробное описание (необязательно)",
+  "amendLastCommit": "Дополнить последний коммит (Amend)",
+  "stageFile": "Индексировать файл",
+  "unstageFile": "Убрать из индекса",
+  "discardFile": "Отменить изменения",
+  "discardConfirmTitle": "Отменить изменения в {file}?",
+  "@discardConfirmTitle": {
+    "placeholders": {
+      "file": { "type": "String" }
+    }
+  },
+  "discardConfirmMessage": "Это действие необратимо. Все незакоммиченные правки в файле будут утеряны.",
+  "discardAllConfirmTitle": "Отменить все неиндексированные изменения?",
+  "discardAllConfirmMessage": "Вы уверены, что хотите отменить все локальные правки? Это действие нельзя отменить.",
+  "noChangesSelected": "Выберите файл в списке для просмотра diff",
+  "noChangesTitle": "Рабочая копия чиста",
+  "noChangesSubtitle": "В репозитории нет незакоммиченных изменений.",
+  "binaryFileNotice": "Бинарный файл изменён. Предпросмотр diff для бинарных файлов не поддерживается.",
+  "unifiedDiff": "Объединённый",
+  "sideBySideDiff": "Двусторонний",
+  "stageHunk": "Индексировать блок",
+  "unstageHunk": "Убрать блок из индекса",
+  "copyLine": "Скопировать строку",
+
+  "commitGraph": "Граф коммитов",
+  "searchCommits": "Поиск коммитов по сообщению, автору или SHA...",
+  "noCommitsFound": "Коммитов по запросу не найдено",
+  "commitDetails": "Сведения о коммите",
+  "author": "Автор",
+  "date": "Дата",
+  "sha": "Хеш",
+  "parents": "Родители",
+  "changedFiles": "Изменённые файлы",
+  "copySha": "Скопировать полный хеш",
+  "checkoutCommit": "Переключиться на этот коммит",
+  "cherryPickCommit": "Применить коммит (Cherry-pick)",
+  "revertCommit": "Откатить коммит (Revert)",
+
+  "localBranches": "Локальные ветки",
+  "remoteBranches": "Удалённые ветки",
+  "tags": "Теги",
+  "currentBranch": "Текущая",
+  "createBranch": "Создать ветку",
+  "branchName": "Название ветки",
+  "checkout": "Переключиться",
+  "renameBranch": "Переименовать ветку",
+  "deleteBranch": "Удалить ветку",
+  "deleteBranchConfirm": "Вы действительно хотите удалить ветку '{branch}'?",
+  "@deleteBranchConfirm": {
+    "placeholders": {
+      "branch": { "type": "String" }
+    }
+  },
+  "cannotDeleteActiveBranch": "Нельзя удалить текущую активную ветку. Сначала переключитесь на другую ветку.",
+  "mergeInto": "Слить '{source}' в '{target}'",
+  "@mergeInto": {
+    "placeholders": {
+      "source": { "type": "String" },
+      "target": { "type": "String" }
+    }
+  },
+  "rebaseOnto": "Перебазировать '{current}' на '{onto}'",
+  "@rebaseOnto": {
+    "placeholders": {
+      "current": { "type": "String" },
+      "onto": { "type": "String" }
+    }
+  },
+  "setUpstream": "Привязать к upstream",
+
+  "remotes": "Удалённые серверы",
+  "addRemote": "Добавить remote",
+  "remoteName": "Имя remote (например, origin)",
+  "remoteUrl": "URL репозитория",
+  "fetch": "Получить (Fetch)",
+  "pull": "Стянуть (Pull)",
+  "push": "Отправить (Push)",
+  "forcePush": "Принудительная отправка (Force Push)",
+  "forcePushWarning": "Force push может перезаписать удалённую историю и нарушить работу коллег. Вы уверены?",
+  "syncStatus": "Синхронизация",
+  "upToDate": "Синхронизировано с сервером",
+  "aheadBy": "Впереди на {count} коммит(а/ов)",
+  "@aheadBy": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "behindBy": "Позади на {count} коммит(а/ов)",
+  "@behindBy": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "stashes": "Тайники (Stashes)",
+  "createStash": "Создать тайник",
+  "stashMessage": "Описание тайника (необязательно)",
+  "includeUntracked": "Включить неотслеживаемые файлы",
+  "applyStash": "Применить тайник",
+  "popStash": "Извлечь тайник (Pop)",
+  "dropStash": "Удалить тайник",
+  "dropStashConfirm": "Вы уверены, что хотите удалить этот тайник?",
+  "noStashes": "Нет сохранённых тайников.",
+
+  "settings": "Настройки",
+  "appearance": "Внешний вид",
+  "themeMode": "Тема оформления",
+  "systemTheme": "Системная",
+  "lightTheme": "Светлая",
+  "darkTheme": "Тёмная",
+  "accentColor": "Акцентный цвет",
+  "interfaceDensity": "Плотность интерфейса",
+  "comfortable": "Комфортная",
+  "compact": "Компактная",
+  "reduceMotion": "Уменьшить анимации",
+  "gitConfiguration": "Конфигурация Git",
+  "gitStatus": "Статус Git",
+  "gitInstalled": "Системный Git обнаружен",
+  "gitNotInstalled": "Системный Git не найден",
+  "gitVersion": "Версия Git: {version}",
+  "@gitVersion": {
+    "placeholders": {
+      "version": { "type": "String" }
+    }
+  },
+  "gitPath": "Путь к исполняемому файлу Git",
+  "chooseCustomGitPath": "Выбрать пользовательский git.exe",
+  "gitUserName": "Имя пользователя Git",
+  "gitUserEmail": "Email пользователя Git",
+  "saveConfig": "Сохранить настройки Git",
+  "gitBackend": "Движок Git-операций",
+  "backendAuto": "Гибридный (LibGit2 + Git CLI)",
+  "backendLibGit2": "Только LibGit2",
+  "backendCli": "Только системный Git CLI",
+  "language": "Язык интерфейса",
+  "about": "О программе Gitora",
+  "version": "Версия",
+  "productIdentifier": "Идентификатор продукта: dev.skrinvex.gitora",
+
+  "commandPalette": "Командная панель",
+  "commandPalettePlaceholder": "Введите команду или действие (Esc для выхода)...",
+  "noCommandsFound": "Команды не найдены",
+
+  "onboardingWelcome": "Добро пожаловать в Gitora",
+  "onboardingStep1": "1. Проверка Git",
+  "onboardingStep2": "2. Профиль разработчика",
+  "onboardingStep3": "3. Оформление и стиль",
+  "onboardingStep4": "4. Первый репозиторий",
+  "onboardingContinue": "Продолжить",
+  "onboardingFinish": "Запустить Gitora",
+  "onboardingGitReady": "Движок Git готов к комфортной работе.",
+  "onboardingGitInstallNote": "Git не найден в системных путях. Вы можете указать путь вручную или установить его с git-scm.com.",
+
+  "cancel": "Отмена",
+  "confirm": "Подтвердить",
+  "save": "Сохранить",
+  "delete": "Удалить",
+  "discard": "Отменить",
+  "apply": "Применить",
+  "close": "Закрыть",
+  "refresh": "Обновить",
+  "success": "Успешно",
+  "error": "Ошибка",
+  "loading": "Загрузка..."
+}

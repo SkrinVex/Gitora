@@ -1,0 +1,206 @@
+{
+  "@@locale": "en",
+  "appName": "Gitora",
+  "appTagline": "Powerful Git. Beautifully Simple.",
+
+  "navDashboard": "Dashboard",
+  "navChanges": "Changes",
+  "navHistory": "History",
+  "navBranches": "Branches",
+  "navRemotes": "Remotes",
+  "navStashes": "Stashes",
+  "navSettings": "Settings",
+
+  "openRepository": "Open Repository",
+  "cloneRepository": "Clone Repository",
+  "newRepository": "New Repository",
+  "recentRepositories": "Recent Repositories",
+  "favorites": "Favorites",
+  "noRecentRepositories": "No recent repositories yet. Open or clone a project to get started.",
+  "searchRepositories": "Search repositories...",
+  "removeRecent": "Remove from recent",
+  "markFavorite": "Add to favorites",
+  "unmarkFavorite": "Remove from favorites",
+  "openInExplorer": "Open in File Explorer",
+  "openInTerminal": "Open in Terminal",
+  "openInEditor": "Open in Code Editor",
+
+  "workingTree": "Working Tree",
+  "stagedChanges": "Staged Changes",
+  "unstagedChanges": "Unstaged Changes",
+  "stageAll": "Stage All",
+  "unstageAll": "Unstage All",
+  "discardAll": "Discard All Changes",
+  "commit": "Commit",
+  "commitToBranch": "Commit to {branch}",
+  "@commitToBranch": {
+    "placeholders": {
+      "branch": { "type": "String" }
+    }
+  },
+  "commitSummary": "Commit summary",
+  "commitDescription": "Extended description (optional)",
+  "amendLastCommit": "Amend last commit",
+  "stageFile": "Stage file",
+  "unstageFile": "Unstage file",
+  "discardFile": "Discard changes",
+  "discardConfirmTitle": "Discard changes in {file}?",
+  "@discardConfirmTitle": {
+    "placeholders": {
+      "file": { "type": "String" }
+    }
+  },
+  "discardConfirmMessage": "This action cannot be undone. All uncommitted modifications will be lost permanently.",
+  "discardAllConfirmTitle": "Discard all unstaged changes?",
+  "discardAllConfirmMessage": "Are you sure you want to discard all unstaged changes in the repository? This action is permanent and cannot be undone.",
+  "noChangesSelected": "Select a file to inspect its diff",
+  "noChangesTitle": "Working tree clean",
+  "noChangesSubtitle": "There are no uncommitted changes in the repository.",
+  "binaryFileNotice": "Binary file differs. Diff preview is not supported for binary assets.",
+  "unifiedDiff": "Unified",
+  "sideBySideDiff": "Side-by-Side",
+  "stageHunk": "Stage Hunk",
+  "unstageHunk": "Unstage Hunk",
+  "copyLine": "Copy line",
+
+  "commitGraph": "Commit Graph",
+  "searchCommits": "Search commits by message, author or SHA...",
+  "noCommitsFound": "No commits found matching query",
+  "commitDetails": "Commit Details",
+  "author": "Author",
+  "date": "Date",
+  "sha": "SHA",
+  "parents": "Parents",
+  "changedFiles": "Changed Files",
+  "copySha": "Copy full SHA",
+  "checkoutCommit": "Checkout this commit",
+  "cherryPickCommit": "Cherry-pick commit",
+  "revertCommit": "Revert commit",
+
+  "localBranches": "Local Branches",
+  "remoteBranches": "Remote Branches",
+  "tags": "Tags",
+  "currentBranch": "Current",
+  "createBranch": "Create Branch",
+  "branchName": "Branch name",
+  "checkout": "Checkout",
+  "renameBranch": "Rename Branch",
+  "deleteBranch": "Delete Branch",
+  "deleteBranchConfirm": "Are you sure you want to delete branch '{branch}'?",
+  "@deleteBranchConfirm": {
+    "placeholders": {
+      "branch": { "type": "String" }
+    }
+  },
+  "cannotDeleteActiveBranch": "You cannot delete the currently active branch. Switch to another branch first.",
+  "mergeInto": "Merge '{source}' into '{target}'",
+  "@mergeInto": {
+    "placeholders": {
+      "source": { "type": "String" },
+      "target": { "type": "String" }
+    }
+  },
+  "rebaseOnto": "Rebase '{current}' onto '{onto}'",
+  "@rebaseOnto": {
+    "placeholders": {
+      "current": { "type": "String" },
+      "onto": { "type": "String" }
+    }
+  },
+  "setUpstream": "Set Upstream",
+
+  "remotes": "Remotes",
+  "addRemote": "Add Remote",
+  "remoteName": "Remote name (e.g., origin)",
+  "remoteUrl": "Remote URL",
+  "fetch": "Fetch",
+  "pull": "Pull",
+  "push": "Push",
+  "forcePush": "Force Push",
+  "forcePushWarning": "Force push can overwrite remote history and impact collaborators. Are you sure you want to force push?",
+  "syncStatus": "Sync Status",
+  "upToDate": "Up to date with remote",
+  "aheadBy": "Ahead by {count} commit(s)",
+  "@aheadBy": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "behindBy": "Behind by {count} commit(s)",
+  "@behindBy": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "stashes": "Stashes",
+  "createStash": "Create Stash",
+  "stashMessage": "Stash message (optional)",
+  "includeUntracked": "Include untracked files",
+  "applyStash": "Apply Stash",
+  "popStash": "Pop Stash",
+  "dropStash": "Drop Stash",
+  "dropStashConfirm": "Are you sure you want to permanently delete this stash?",
+  "noStashes": "No stashes saved yet.",
+
+  "settings": "Settings",
+  "appearance": "Appearance",
+  "themeMode": "Theme Mode",
+  "systemTheme": "System Default",
+  "lightTheme": "Light",
+  "darkTheme": "Dark",
+  "accentColor": "Accent Color",
+  "interfaceDensity": "Interface Density",
+  "comfortable": "Comfortable",
+  "compact": "Compact",
+  "reduceMotion": "Reduce Animations",
+  "gitConfiguration": "Git Configuration",
+  "gitStatus": "Git Status",
+  "gitInstalled": "System Git Detected",
+  "gitNotInstalled": "System Git Not Found",
+  "gitVersion": "Git Version: {version}",
+  "@gitVersion": {
+    "placeholders": {
+      "version": { "type": "String" }
+    }
+  },
+  "gitPath": "Git Executable Path",
+  "chooseCustomGitPath": "Choose Custom Git Executable",
+  "gitUserName": "Git User Name",
+  "gitUserEmail": "Git User Email",
+  "saveConfig": "Save Git Configuration",
+  "gitBackend": "Git Backend Engine",
+  "backendAuto": "Hybrid (LibGit2 + Git CLI)",
+  "backendLibGit2": "LibGit2 Only",
+  "backendCli": "Git CLI Only",
+  "language": "Language",
+  "about": "About Gitora",
+  "version": "Version",
+  "productIdentifier": "Product Identifier: dev.skrinvex.gitora",
+
+  "commandPalette": "Command Palette",
+  "commandPalettePlaceholder": "Type a command or search action (Esc to close)...",
+  "noCommandsFound": "No matching commands found",
+
+  "onboardingWelcome": "Welcome to Gitora",
+  "onboardingStep1": "1. Git Verification",
+  "onboardingStep2": "2. User Identity",
+  "onboardingStep3": "3. Appearance & Style",
+  "onboardingStep4": "4. First Repository",
+  "onboardingContinue": "Continue",
+  "onboardingFinish": "Launch Gitora",
+  "onboardingGitReady": "Git engine is ready to power your workflow.",
+  "onboardingGitInstallNote": "Git was not found in standard system PATH. You can specify the git.exe path or download Git from git-scm.com.",
+
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "save": "Save",
+  "delete": "Delete",
+  "discard": "Discard",
+  "apply": "Apply",
+  "close": "Close",
+  "refresh": "Refresh",
+  "success": "Success",
+  "error": "Error",
+  "loading": "Loading..."
+}
