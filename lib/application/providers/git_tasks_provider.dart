@@ -1,5 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gitora/application/providers/current_repo_provider.dart';
+import 'package:gitora/application/providers/git_branches_provider.dart';
+import 'package:gitora/application/providers/git_history_provider.dart';
+import 'package:gitora/application/providers/git_remotes_provider.dart';
+import 'package:gitora/application/providers/git_stashes_provider.dart';
 import 'package:gitora/application/providers/log_provider.dart';
 import 'package:gitora/application/providers/repository_state_provider.dart';
 
@@ -80,7 +84,10 @@ class GitTaskNotifier extends Notifier<GitTaskState> {
       // Resume watcher and trigger automatic state synchronization
       ref.read(repoWatcherServiceProvider).resume();
       await ref.read(repositoryStateProvider.notifier).refresh();
-      ref.read(repoStatusRefreshTriggerProvider.notifier).trigger();
+      ref.invalidate(gitBranchesProvider);
+      ref.invalidate(gitRemotesProvider);
+      ref.invalidate(gitStashesProvider);
+      ref.invalidate(gitHistoryProvider);
 
       return result;
     } catch (e, stackTrace) {
@@ -98,7 +105,9 @@ class GitTaskNotifier extends Notifier<GitTaskState> {
       // Resume watcher and trigger refresh to reflect current disk state
       ref.read(repoWatcherServiceProvider).resume();
       await ref.read(repositoryStateProvider.notifier).refresh();
-      ref.read(repoStatusRefreshTriggerProvider.notifier).trigger();
+      ref.invalidate(gitBranchesProvider);
+      ref.invalidate(gitRemotesProvider);
+      ref.invalidate(gitStashesProvider);
 
       return null;
     }

@@ -3,7 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gitora/application/providers/current_repo_provider.dart';
+import 'package:gitora/application/providers/git_branches_provider.dart';
+import 'package:gitora/application/providers/git_history_provider.dart';
+import 'package:gitora/application/providers/git_remotes_provider.dart';
 import 'package:gitora/application/providers/git_service_provider.dart';
+import 'package:gitora/application/providers/git_stashes_provider.dart';
 import 'package:gitora/application/providers/repository_state_provider.dart';
 import 'package:gitora/application/providers/git_tasks_provider.dart';
 import 'package:gitora/application/providers/settings_provider.dart';
@@ -61,6 +65,9 @@ class _MainShellState extends ConsumerState<MainShell>
         final currentRepo = ref.read(currentRepoProvider);
         if (currentRepo != null && currentRepo.isNotEmpty) {
           ref.read(repositoryStateProvider.notifier).refresh();
+          ref.invalidate(gitBranchesProvider);
+          ref.invalidate(gitRemotesProvider);
+          ref.invalidate(gitStashesProvider);
         }
       }
     }
@@ -68,6 +75,26 @@ class _MainShellState extends ConsumerState<MainShell>
 
   void _navigateTo(int index) {
     setState(() => _currentIndex = index);
+    final currentRepo = ref.read(currentRepoProvider);
+    if (currentRepo != null && currentRepo.isNotEmpty) {
+      ref.read(repositoryStateProvider.notifier).refresh();
+      switch (index) {
+        case 1: // Changes
+          break;
+        case 2: // History
+          ref.invalidate(gitHistoryProvider);
+          break;
+        case 3: // Branches
+          ref.invalidate(gitBranchesProvider);
+          break;
+        case 4: // Remotes
+          ref.invalidate(gitRemotesProvider);
+          break;
+        case 5: // Stashes
+          ref.invalidate(gitStashesProvider);
+          break;
+      }
+    }
   }
 
   @override

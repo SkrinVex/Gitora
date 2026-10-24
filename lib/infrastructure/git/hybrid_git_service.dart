@@ -529,12 +529,14 @@ class HybridGitService implements GitService {
     String? remote,
     String? branch,
     bool force = false,
+    bool setUpstream = false,
   }) async {
     await _cliService.push(
       repoPath,
       remote: remote,
       branch: branch,
       force: force,
+      setUpstream: setUpstream,
     );
   }
 

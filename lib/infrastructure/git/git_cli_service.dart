@@ -960,10 +960,14 @@ class GitCliService implements GitService {
     String? remote,
     String? branch,
     bool force = false,
+    bool setUpstream = false,
   }) async {
     final args = ['push'];
     if (force) {
       args.add('--force-with-lease');
+    }
+    if (setUpstream) {
+      args.add('--set-upstream');
     }
     if (remote != null) {
       args.add(remote);
@@ -971,7 +975,36 @@ class GitCliService implements GitService {
         args.add(branch);
       }
     }
-    await _run(args, workingDirectory: repoPath);
+    try {
+      await _run(args, workingDirectory: repoPath);
+    } catch (e) {
+      final err = e.toString();
+      // If the current branch has no upstream branch configured,
+      // auto-recover by pushing with --set-upstream to target remote and branch.
+      if (err.contains('has no upstream branch') ||
+          err.contains('no upstream branch') ||
+          err.contains('--set-upstream')) {
+        final remotes = await getRemotes(repoPath);
+        final targetRemote = remote ??
+            (remotes.any((r) => r.name == 'origin')
+                ? 'origin'
+                : (remotes.isNotEmpty ? remotes.first.name : 'origin'));
+
+        final status = await getStatus(repoPath);
+        final targetBranch = branch ?? status.branchName;
+
+        final retryArgs = [
+          'push',
+          if (force) '--force-with-lease',
+          '--set-upstream',
+          targetRemote,
+          targetBranch,
+        ];
+        await _run(retryArgs, workingDirectory: repoPath);
+        return;
+      }
+      rethrow;
+    }
   }
 
   @override

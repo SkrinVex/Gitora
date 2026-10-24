@@ -114,4 +114,42 @@ void main() {
       expect(stashes.isEmpty, isTrue);
     },
   );
+
+  test('Push with no upstream automatically sets upstream and succeeds', () async {
+    final repoPath = tempDir.path;
+    await gitService.initRepository(repoPath);
+
+    await Process.run('git', ['config', 'user.name', 'Gitora Tester'], workingDirectory: repoPath);
+    await Process.run('git', ['config', 'user.email', 'test@gitora.dev'], workingDirectory: repoPath);
+
+    final f = File('$repoPath/file.txt');
+    await f.writeAsString('Hello World\n');
+    await gitService.stageAll(repoPath);
+    await gitService.commit(repoPath, message: 'Initial commit');
+
+    // Create a bare remote repository
+    final bareDir = await Directory.systemTemp.createTemp('gitora_bare_');
+    addTearDown(() async {
+      if (bareDir.existsSync()) {
+        try {
+          await bareDir.delete(recursive: true);
+        } catch (_) {}
+      }
+    });
+    await Process.run('git', ['init', '--bare'], workingDirectory: bareDir.path);
+
+    // Add as remote origin
+    await gitService.addRemote(repoPath, name: 'origin', url: bareDir.path.replaceAll('\\', '/'));
+
+    // Check upstream is initially null
+    var status = await gitService.getStatus(repoPath);
+    expect(status.upstream, isNull);
+
+    // Push with no arguments - should auto-recover and set upstream to origin!
+    await gitService.push(repoPath);
+
+    status = await gitService.getStatus(repoPath);
+    expect(status.upstream, isNotNull);
+    expect(status.upstream, contains('origin/'));
+  });
 }

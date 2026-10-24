@@ -88,6 +88,7 @@ abstract class GitService {
     String? remote,
     String? branch,
     bool force = false,
+    bool setUpstream = false,
   });
 
   Future<List<GitStash>> getStashes(String repoPath);

@@ -76,8 +76,9 @@ class RepositoryState {
     if (isRebasing != other.isRebasing) return false;
     if (totalChanges != other.totalChanges) return false;
     if (currentTask.isRunning != other.currentTask.isRunning) return false;
-    if (currentTask.progressMessage != other.currentTask.progressMessage)
+    if (currentTask.progressMessage != other.currentTask.progressMessage) {
       return false;
+    }
     if (lastError != other.lastError) return false;
     if (!_listEquals(staged, other.staged)) return false;
     if (!_listEquals(unstaged, other.unstaged)) return false;

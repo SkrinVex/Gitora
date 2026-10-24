@@ -693,6 +693,7 @@ class LibGit2Service implements GitService {
     String? remote,
     String? branch,
     bool force = false,
+    bool setUpstream = false,
   }) async {
     throw UnsupportedError(
       'Network push with authentication delegated to GitCliService',

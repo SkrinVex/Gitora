@@ -1,4 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gitora/application/providers/git_branches_provider.dart';
+import 'package:gitora/application/providers/git_history_provider.dart';
+import 'package:gitora/application/providers/git_remotes_provider.dart';
+import 'package:gitora/application/providers/git_stashes_provider.dart';
 import 'package:gitora/application/providers/recent_repos_provider.dart';
 import 'package:gitora/application/providers/repository_state_provider.dart';
 import 'package:gitora/application/providers/settings_provider.dart';
@@ -36,7 +40,9 @@ class CurrentRepoNotifier extends Notifier<String?> {
         final watcher = ref.read(repoWatcherServiceProvider);
         watcher.watch(canonical, () {
           ref.read(repositoryStateProvider.notifier).refresh();
-          ref.read(repoStatusRefreshTriggerProvider.notifier).trigger();
+          ref.invalidate(gitBranchesProvider);
+          ref.invalidate(gitRemotesProvider);
+          ref.invalidate(gitStashesProvider);
         });
       });
       return canonical;
@@ -58,6 +64,9 @@ class CurrentRepoNotifier extends Notifier<String?> {
       final watcher = ref.read(repoWatcherServiceProvider);
       watcher.watch(canonical, () {
         ref.read(repositoryStateProvider.notifier).refresh();
+        ref.invalidate(gitBranchesProvider);
+        ref.invalidate(gitRemotesProvider);
+        ref.invalidate(gitStashesProvider);
       });
     } else {
       state = null;
@@ -69,6 +78,10 @@ class CurrentRepoNotifier extends Notifier<String?> {
 
   void refresh() {
     ref.read(repositoryStateProvider.notifier).refresh();
+    ref.invalidate(gitBranchesProvider);
+    ref.invalidate(gitRemotesProvider);
+    ref.invalidate(gitStashesProvider);
+    ref.invalidate(gitHistoryProvider);
   }
 }
 

@@ -38,12 +38,14 @@ class RepoWatcherService {
           return;
         }
 
-        // Inside .git, ONLY watch refs, HEAD, and index
+        // Inside .git, watch refs, HEAD, packed-refs, config, and index
         if (path.contains('/.git/')) {
           final isRefs = path.contains('/.git/refs/');
           final isHead = path.endsWith('/.git/HEAD');
           final isIndex = path.endsWith('/.git/index');
-          if (!isRefs && !isHead && !isIndex) {
+          final isConfig = path.endsWith('/.git/config');
+          final isPackedRefs = path.endsWith('/.git/packed-refs');
+          if (!isRefs && !isHead && !isIndex && !isConfig && !isPackedRefs) {
             return;
           }
         }
