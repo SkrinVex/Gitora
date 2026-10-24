@@ -13,6 +13,7 @@ import 'package:gitora/domain/models/git_file_change.dart';
 import 'package:gitora/l10n/app_localizations.dart';
 import 'package:gitora/presentation/screens/changes/diff_viewer.dart';
 import 'package:gitora/presentation/widgets/confirm_dialog.dart';
+import 'package:gitora/presentation/widgets/resizable_split_view.dart';
 
 class CommitDetailsPanel extends ConsumerWidget {
   final GitCommit commit;
@@ -215,141 +216,130 @@ class CommitDetailsPanel extends ConsumerWidget {
                   );
                 }
 
-                return Row(
-                  children: [
-                    // Files list
-                    SizedBox(
-                      width: 260,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border(
-                            right: BorderSide(
-                              color: theme.colorScheme.outlineVariant.withAlpha(
-                                80,
-                              ),
-                            ),
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 10,
-                              ),
-                              child: Text(
-                                '${l10n.changedFiles} (${files.length})',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              child: ListView.builder(
-                                itemCount: files.length,
-                                itemBuilder: (context, index) {
-                                  final file = files[index];
-                                  final isSelected =
-                                      selectedTarget?.filePath == file.path &&
-                                      selectedTarget?.commitHash == commit.hash;
-
-                                  return InkWell(
-                                    onTap: () {
-                                      ref
-                                          .read(
-                                            selectedDiffTargetProvider.notifier,
-                                          )
-                                          .state = SelectedDiffTarget(
-                                        filePath: file.path,
-                                        commitHash: commit.hash,
-                                      );
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 6,
-                                      ),
-                                      color: isSelected
-                                          ? theme.colorScheme.secondaryContainer
-                                                .withAlpha(120)
-                                          : null,
-                                      child: Row(
-                                        children: [
-                                          Container(
-                                            width: 18,
-                                            height: 18,
-                                            alignment: Alignment.center,
-                                            decoration: BoxDecoration(
-                                              color: _getStatusColor(
-                                                file.status,
-                                              ).withAlpha(30),
-                                              borderRadius:
-                                                  BorderRadius.circular(4),
-                                            ),
-                                            child: Text(
-                                              file.statusLetter,
-                                              style: TextStyle(
-                                                color: _getStatusColor(
-                                                  file.status,
-                                                ),
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 11,
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: Text(
-                                              file.fileName,
-                                              style: TextStyle(
-                                                fontSize: 12.5,
-                                                fontWeight: isSelected
-                                                    ? FontWeight.w600
-                                                    : FontWeight.normal,
-                                              ),
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
+                return ResizableSplitView(
+                  storageKey: 'commit_details_split_ratio',
+                  axis: Axis.horizontal,
+                  defaultRatio: 0.35,
+                  minFirstSize: 180,
+                  minSecondSize: 280,
+                  firstChild: Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        right: BorderSide(
+                          color: theme.colorScheme.outlineVariant.withAlpha(80),
                         ),
                       ),
                     ),
-
-                    // Diff viewer for selected commit file
-                    Expanded(
-                      child:
-                          selectedTarget == null ||
-                              selectedTarget.commitHash != commit.hash
-                          ? Center(
-                              child: Text(
-                                l10n.noChangesSelected,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.outline,
-                                ),
-                              ),
-                            )
-                          : diffAsync.when(
-                              loading: () => const Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                              error: (e, _) =>
-                                  Center(child: Text('Error loading diff: $e')),
-                              data: (diff) => diff == null
-                                  ? const SizedBox.shrink()
-                                  : DiffViewer(diff: diff, isStaged: false),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          child: Text(
+                            '${l10n.changedFiles} (${files.length})',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.onSurfaceVariant,
                             ),
+                          ),
+                        ),
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: files.length,
+                            itemBuilder: (context, index) {
+                              final file = files[index];
+                              final isSelected =
+                                  selectedTarget?.filePath == file.path &&
+                                  selectedTarget?.commitHash == commit.hash;
+
+                              return InkWell(
+                                onTap: () {
+                                  ref
+                                      .read(selectedDiffTargetProvider.notifier)
+                                      .state = SelectedDiffTarget(
+                                    filePath: file.path,
+                                    commitHash: commit.hash,
+                                  );
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  color: isSelected
+                                      ? theme.colorScheme.secondaryContainer
+                                            .withAlpha(120)
+                                      : null,
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 18,
+                                        height: 18,
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                          color: _getStatusColor(
+                                            file.status,
+                                          ).withAlpha(30),
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          file.statusLetter,
+                                          style: TextStyle(
+                                            color: _getStatusColor(file.status),
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 11,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          file.fileName,
+                                          style: TextStyle(
+                                            fontSize: 12.5,
+                                            fontWeight: isSelected
+                                                ? FontWeight.w600
+                                                : FontWeight.normal,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
+                  secondChild:
+                      selectedTarget == null ||
+                          selectedTarget.commitHash != commit.hash
+                      ? Center(
+                          child: Text(
+                            l10n.noChangesSelected,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.outline,
+                            ),
+                          ),
+                        )
+                      : diffAsync.when(
+                          loading: () =>
+                              const Center(child: CircularProgressIndicator()),
+                          error: (e, _) =>
+                              Center(child: Text('Error loading diff: $e')),
+                          data: (diff) => diff == null
+                              ? const SizedBox.shrink()
+                              : DiffViewer(diff: diff, isStaged: false),
+                        ),
                 );
               },
             ),

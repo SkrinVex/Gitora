@@ -6,6 +6,8 @@ import 'package:gitora/application/providers/current_repo_provider.dart';
 import 'package:gitora/application/providers/git_service_provider.dart';
 import 'package:gitora/application/providers/git_tasks_provider.dart';
 import 'package:gitora/application/providers/recent_repos_provider.dart';
+import 'package:gitora/application/providers/log_provider.dart';
+import 'package:gitora/application/providers/settings_provider.dart';
 import 'package:gitora/core/constants/app_constants.dart';
 import 'package:gitora/core/theme/app_colors.dart';
 import 'package:gitora/core/utils/system_launcher.dart';
@@ -419,7 +421,31 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 IconButton(
                   icon: const Icon(Icons.terminal, size: 20),
                   tooltip: l10n.openInTerminal,
-                  onPressed: () => SystemLauncher.openInTerminal(repo.path),
+                  onPressed: () async {
+                    try {
+                      final pref = ref.read(settingsProvider).preferredTerminal;
+                      await SystemLauncher.openInTerminal(
+                        repo.path,
+                        preferredTerminal: pref,
+                      );
+                    } catch (e) {
+                      ref
+                          .read(logProvider.notifier)
+                          .logError(
+                            'Failed to open terminal',
+                            details: e.toString(),
+                            source: 'Terminal',
+                          );
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Failed to open terminal: $e'),
+                            backgroundColor: theme.colorScheme.error,
+                          ),
+                        );
+                      }
+                    }
+                  },
                 ),
                 IconButton(
                   icon: const Icon(Icons.code, size: 20),

@@ -484,4 +484,75 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loading => 'Loading...';
+
+  @override
+  String get toggleWordWrap => 'Toggle Word Wrap';
+
+  @override
+  String get enableWordWrap => 'Enable word wrap';
+
+  @override
+  String get disableWordWrap => 'Disable word wrap';
+
+  @override
+  String get preferredTerminal => 'Preferred Terminal';
+
+  @override
+  String get terminalAuto => 'System Default (Auto)';
+
+  @override
+  String get terminalWindowsTerminal => 'Windows Terminal';
+
+  @override
+  String get terminalPowerShell => 'PowerShell';
+
+  @override
+  String get terminalCmd => 'Command Prompt (cmd)';
+
+  @override
+  String get resetOnboarding => 'Reset Onboarding';
+
+  @override
+  String get resetOnboardingConfirm =>
+      'Reset onboarding experience? The welcome wizard will appear on next launch.';
+
+  @override
+  String get onboardingResetNotice =>
+      'Onboarding reset. Re-open app to see welcome flow.';
+
+  @override
+  String get viewLicenses => 'View Open Source Licenses';
+
+  @override
+  String get errors => 'Errors';
+
+  @override
+  String get warnings => 'Warnings';
+
+  @override
+  String get output => 'Output';
+
+  @override
+  String get filterLogs => 'Filter logs...';
+
+  @override
+  String get clearLogs => 'Clear Logs';
+
+  @override
+  String get noLogsRecorded => 'No logs recorded';
+
+  @override
+  String get copyMessage => 'Copy message';
+
+  @override
+  String get copyFullReport => 'Copy diagnostic report';
+
+  @override
+  String get copiedToClipboard => 'Copied to clipboard';
+
+  @override
+  String get logs => 'Logs';
+
+  @override
+  String get gitConfigSaved => 'Git configuration saved successfully';
 }

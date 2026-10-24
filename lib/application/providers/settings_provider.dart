@@ -15,6 +15,7 @@ class AppSettings {
   final GitBackendMode backendMode;
   final String customGitPath;
   final bool isUnifiedDiff;
+  final String preferredTerminal;
 
   const AppSettings({
     this.themeMode = ThemeMode.system,
@@ -25,6 +26,7 @@ class AppSettings {
     this.backendMode = GitBackendMode.auto,
     this.customGitPath = '',
     this.isUnifiedDiff = true,
+    this.preferredTerminal = 'auto',
   });
 
   AppSettings copyWith({
@@ -36,6 +38,7 @@ class AppSettings {
     GitBackendMode? backendMode,
     String? customGitPath,
     bool? isUnifiedDiff,
+    String? preferredTerminal,
   }) {
     return AppSettings(
       themeMode: themeMode ?? this.themeMode,
@@ -46,6 +49,7 @@ class AppSettings {
       backendMode: backendMode ?? this.backendMode,
       customGitPath: customGitPath ?? this.customGitPath,
       isUnifiedDiff: isUnifiedDiff ?? this.isUnifiedDiff,
+      preferredTerminal: preferredTerminal ?? this.preferredTerminal,
     );
   }
 }
@@ -89,6 +93,9 @@ class SettingsNotifier extends Notifier<AppSettings> {
     final gitPath = prefs.getString(AppConstants.prefGitPath) ?? '';
     final isUnified = prefs.getBool(AppConstants.prefDiffViewMode) ?? true;
 
+    final terminal =
+        prefs.getString(AppConstants.prefPreferredTerminal) ?? 'auto';
+
     return AppSettings(
       themeMode: themeMode,
       seedColor: seedColor,
@@ -98,7 +105,14 @@ class SettingsNotifier extends Notifier<AppSettings> {
       backendMode: backendMode,
       customGitPath: gitPath,
       isUnifiedDiff: isUnified,
+      preferredTerminal: terminal,
     );
+  }
+
+  Future<void> setPreferredTerminal(String terminal) async {
+    state = state.copyWith(preferredTerminal: terminal);
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs?.setString(AppConstants.prefPreferredTerminal, terminal);
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {

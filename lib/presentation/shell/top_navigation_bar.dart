@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gitora/application/providers/current_repo_provider.dart';
 import 'package:gitora/application/providers/git_status_provider.dart';
 import 'package:gitora/application/providers/recent_repos_provider.dart';
+import 'package:gitora/application/providers/log_provider.dart';
+import 'package:gitora/application/providers/settings_provider.dart';
 import 'package:gitora/core/constants/app_constants.dart';
 import 'package:gitora/core/utils/system_launcher.dart';
 import 'package:gitora/l10n/app_localizations.dart';
@@ -241,7 +243,31 @@ class TopNavigationBar extends ConsumerWidget {
               icon: const Icon(Icons.terminal, size: 18),
               tooltip: l10n.openInTerminal,
               visualDensity: VisualDensity.compact,
-              onPressed: () => SystemLauncher.openInTerminal(currentRepo),
+              onPressed: () async {
+                try {
+                  final pref = ref.read(settingsProvider).preferredTerminal;
+                  await SystemLauncher.openInTerminal(
+                    currentRepo,
+                    preferredTerminal: pref,
+                  );
+                } catch (e) {
+                  ref
+                      .read(logProvider.notifier)
+                      .logError(
+                        'Failed to open terminal',
+                        details: e.toString(),
+                        source: 'Terminal',
+                      );
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to open terminal: $e'),
+                        backgroundColor: theme.colorScheme.error,
+                      ),
+                    );
+                  }
+                }
+              },
             ),
             IconButton(
               icon: const Icon(Icons.code, size: 18),

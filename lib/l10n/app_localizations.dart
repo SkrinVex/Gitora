@@ -997,6 +997,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Loading...'**
   String get loading;
+
+  /// No description provided for @toggleWordWrap.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle Word Wrap'**
+  String get toggleWordWrap;
+
+  /// No description provided for @enableWordWrap.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable word wrap'**
+  String get enableWordWrap;
+
+  /// No description provided for @disableWordWrap.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable word wrap'**
+  String get disableWordWrap;
+
+  /// No description provided for @preferredTerminal.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferred Terminal'**
+  String get preferredTerminal;
+
+  /// No description provided for @terminalAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'System Default (Auto)'**
+  String get terminalAuto;
+
+  /// No description provided for @terminalWindowsTerminal.
+  ///
+  /// In en, this message translates to:
+  /// **'Windows Terminal'**
+  String get terminalWindowsTerminal;
+
+  /// No description provided for @terminalPowerShell.
+  ///
+  /// In en, this message translates to:
+  /// **'PowerShell'**
+  String get terminalPowerShell;
+
+  /// No description provided for @terminalCmd.
+  ///
+  /// In en, this message translates to:
+  /// **'Command Prompt (cmd)'**
+  String get terminalCmd;
+
+  /// No description provided for @resetOnboarding.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Onboarding'**
+  String get resetOnboarding;
+
+  /// No description provided for @resetOnboardingConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset onboarding experience? The welcome wizard will appear on next launch.'**
+  String get resetOnboardingConfirm;
+
+  /// No description provided for @onboardingResetNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Onboarding reset. Re-open app to see welcome flow.'**
+  String get onboardingResetNotice;
+
+  /// No description provided for @viewLicenses.
+  ///
+  /// In en, this message translates to:
+  /// **'View Open Source Licenses'**
+  String get viewLicenses;
+
+  /// No description provided for @errors.
+  ///
+  /// In en, this message translates to:
+  /// **'Errors'**
+  String get errors;
+
+  /// No description provided for @warnings.
+  ///
+  /// In en, this message translates to:
+  /// **'Warnings'**
+  String get warnings;
+
+  /// No description provided for @output.
+  ///
+  /// In en, this message translates to:
+  /// **'Output'**
+  String get output;
+
+  /// No description provided for @filterLogs.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter logs...'**
+  String get filterLogs;
+
+  /// No description provided for @clearLogs.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Logs'**
+  String get clearLogs;
+
+  /// No description provided for @noLogsRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'No logs recorded'**
+  String get noLogsRecorded;
+
+  /// No description provided for @copyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy message'**
+  String get copyMessage;
+
+  /// No description provided for @copyFullReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy diagnostic report'**
+  String get copyFullReport;
+
+  /// No description provided for @copiedToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard'**
+  String get copiedToClipboard;
+
+  /// No description provided for @logs.
+  ///
+  /// In en, this message translates to:
+  /// **'Logs'**
+  String get logs;
+
+  /// No description provided for @gitConfigSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Git configuration saved successfully'**
+  String get gitConfigSaved;
 }
 
 class _AppLocalizationsDelegate

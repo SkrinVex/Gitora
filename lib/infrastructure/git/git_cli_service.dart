@@ -473,7 +473,10 @@ class GitCliService implements GitService {
   }
 
   GitDiffModel _parseDiffOutput(String filePath, String raw) {
-    final lines = raw.split('\n');
+    final lines = raw
+        .split('\n')
+        .map((l) => l.endsWith('\r') ? l.substring(0, l.length - 1) : l)
+        .toList();
     final hunks = <GitDiffHunk>[];
     GitDiffHunk? currentHunk;
     List<GitDiffLine> currentHunkLines = [];
@@ -630,12 +633,68 @@ class GitCliService implements GitService {
 
   @override
   Future<void> stageHunk(String repoPath, String patchContent) async {
+    var res = await _applyPatch(repoPath, patchContent, [
+      '--cached',
+      '--recount',
+      '--whitespace=nowarn',
+      '--ignore-space-change',
+      '-C1',
+    ]);
+
+    if (res.exitCode != 0) {
+      res = await _applyPatch(repoPath, patchContent, [
+        '--cached',
+        '--recount',
+        '--whitespace=nowarn',
+        '--ignore-space-change',
+      ]);
+    }
+
+    if (res.exitCode != 0) {
+      throw Exception(
+        'Failed to stage hunk. The working tree or index may have changed.\nDetails: ${res.stderr}',
+      );
+    }
+  }
+
+  @override
+  Future<void> unstageHunk(String repoPath, String patchContent) async {
+    var res = await _applyPatch(repoPath, patchContent, [
+      '--cached',
+      '--reverse',
+      '--recount',
+      '--whitespace=nowarn',
+      '--ignore-space-change',
+      '-C1',
+    ]);
+
+    if (res.exitCode != 0) {
+      res = await _applyPatch(repoPath, patchContent, [
+        '--cached',
+        '--reverse',
+        '--recount',
+        '--whitespace=nowarn',
+        '--ignore-space-change',
+      ]);
+    }
+
+    if (res.exitCode != 0) {
+      throw Exception(
+        'Failed to unstage hunk. The index may have changed.\nDetails: ${res.stderr}',
+      );
+    }
+  }
+
+  Future<ProcessResult> _applyPatch(
+    String repoPath,
+    String patchContent,
+    List<String> options,
+  ) async {
     final process = await Process.start(_customGitPath, [
       '-c',
       'core.quotepath=false',
       'apply',
-      '--cached',
-      '--recount',
+      ...options,
       '-',
     ], workingDirectory: repoPath);
 
@@ -644,10 +703,10 @@ class GitCliService implements GitService {
     await process.stdin.close();
 
     final exitCode = await process.exitCode;
-    if (exitCode != 0) {
-      final err = await process.stderr.transform(utf8.decoder).join();
-      throw Exception('Failed to stage hunk: $err');
-    }
+    final stdout = await process.stdout.transform(utf8.decoder).join();
+    final stderr = await process.stderr.transform(utf8.decoder).join();
+
+    return ProcessResult(process.pid, exitCode, stdout, stderr);
   }
 
   @override

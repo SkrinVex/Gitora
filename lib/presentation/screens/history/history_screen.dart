@@ -6,6 +6,7 @@ import 'package:gitora/domain/models/git_commit.dart';
 import 'package:gitora/l10n/app_localizations.dart';
 import 'package:gitora/presentation/screens/history/commit_details_panel.dart';
 import 'package:gitora/presentation/screens/history/commit_graph_painter.dart';
+import 'package:gitora/presentation/widgets/resizable_split_view.dart';
 
 class HistoryScreen extends ConsumerStatefulWidget {
   const HistoryScreen({super.key});
@@ -125,146 +126,139 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                 }
               }
 
-              return Row(
+              final commitGraphWidget = Stack(
                 children: [
-                  // Left side: Commit graph list
-                  Expanded(
-                    flex: selectedCommit != null ? 5 : 10,
-                    child: Stack(
-                      children: [
-                        // Background CustomPainter for lines and nodes
-                        Positioned(
-                          left: 0,
-                          top: 0,
-                          width: graphWidth,
-                          height: commits.length * _itemHeight,
-                          child: IgnorePointer(
-                            child: CustomPaint(
-                              painter: CommitGraphPainter(
-                                commits: commits,
-                                selectedIndex: selectedIndex,
-                                itemHeight: _itemHeight,
-                                laneWidth: _laneWidth,
-                              ),
-                            ),
-                          ),
+                  // Background CustomPainter for lines and nodes
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    width: graphWidth,
+                    height: commits.length * _itemHeight,
+                    child: IgnorePointer(
+                      child: CustomPaint(
+                        painter: CommitGraphPainter(
+                          commits: commits,
+                          selectedIndex: selectedIndex,
+                          itemHeight: _itemHeight,
+                          laneWidth: _laneWidth,
                         ),
+                      ),
+                    ),
+                  ),
 
-                        // Scrollable list of commit rows
-                        ListView.builder(
-                          controller: _scrollController,
-                          itemCount: commits.length,
-                          itemExtent: _itemHeight,
-                          itemBuilder: (context, index) {
-                            final commit = commits[index];
-                            final isSelected =
-                                commit.hash == filter.selectedCommitHash;
+                  // Scrollable list of commit rows
+                  ListView.builder(
+                    controller: _scrollController,
+                    itemCount: commits.length,
+                    itemExtent: _itemHeight,
+                    itemBuilder: (context, index) {
+                      final commit = commits[index];
+                      final isSelected =
+                          commit.hash == filter.selectedCommitHash;
 
-                            return InkWell(
-                              onTap: () {
-                                ref
-                                    .read(historyFilterProvider.notifier)
-                                    .selectCommit(commit.hash);
-                              },
-                              child: Container(
-                                color: isSelected
-                                    ? theme.colorScheme.primaryContainer
-                                          .withAlpha(60)
-                                    : null,
-                                padding: EdgeInsets.only(
-                                  left: graphWidth + 12,
-                                  right: 16,
-                                ),
-                                child: Row(
+                      return InkWell(
+                        onTap: () {
+                          ref
+                              .read(historyFilterProvider.notifier)
+                              .selectCommit(commit.hash);
+                        },
+                        child: Container(
+                          color: isSelected
+                              ? theme.colorScheme.primaryContainer.withAlpha(60)
+                              : null,
+                          padding: EdgeInsets.only(
+                            left: graphWidth + 12,
+                            right: 16,
+                          ),
+                          child: Row(
+                            children: [
+                              // Commit message
+                              Expanded(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // Commit message
-                                    Expanded(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            commit.summary,
-                                            style: TextStyle(
-                                              fontWeight: isSelected
-                                                  ? FontWeight.w600
-                                                  : FontWeight.normal,
-                                              fontSize: 13.5,
-                                              color: isSelected
-                                                  ? theme.colorScheme.primary
-                                                  : theme.colorScheme.onSurface,
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            commit.authorName,
-                                            style: TextStyle(
-                                              fontSize: 11.5,
-                                              color: theme.colorScheme.outline,
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-
-                                    const SizedBox(width: 12),
-
-                                    // Date
                                     Text(
-                                      _formatDate(commit.date),
+                                      commit.summary,
+                                      style: TextStyle(
+                                        fontWeight: isSelected
+                                            ? FontWeight.w600
+                                            : FontWeight.normal,
+                                        fontSize: 13.5,
+                                        color: isSelected
+                                            ? theme.colorScheme.primary
+                                            : theme.colorScheme.onSurface,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      commit.authorName,
                                       style: TextStyle(
                                         fontSize: 11.5,
                                         color: theme.colorScheme.outline,
                                       ),
-                                    ),
-
-                                    const SizedBox(width: 10),
-
-                                    // Short SHA
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: theme
-                                            .colorScheme
-                                            .surfaceContainerHighest,
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        commit.shortHash,
-                                        style: TextStyle(
-                                          fontFamily: 'monospace',
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w600,
-                                          color: theme
-                                              .colorScheme
-                                              .onSurfaceVariant,
-                                        ),
-                                      ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ],
                                 ),
                               ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
 
-                  // Right side: Commit Details panel
-                  if (selectedCommit != null)
-                    Expanded(
-                      flex: 5,
-                      child: CommitDetailsPanel(commit: selectedCommit),
-                    ),
+                              const SizedBox(width: 12),
+
+                              // Date
+                              Text(
+                                _formatDate(commit.date),
+                                style: TextStyle(
+                                  fontSize: 11.5,
+                                  color: theme.colorScheme.outline,
+                                ),
+                              ),
+
+                              const SizedBox(width: 10),
+
+                              // Short SHA
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color:
+                                      theme.colorScheme.surfaceContainerHighest,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  commit.shortHash,
+                                  style: TextStyle(
+                                    fontFamily: 'monospace',
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ],
+              );
+
+              if (selectedCommit == null) {
+                return commitGraphWidget;
+              }
+
+              return ResizableSplitView(
+                storageKey: 'history_split_ratio',
+                axis: Axis.horizontal,
+                defaultRatio: 0.55,
+                minFirstSize: 320,
+                minSecondSize: 320,
+                firstChild: commitGraphWidget,
+                secondChild: CommitDetailsPanel(commit: selectedCommit),
               );
             },
           ),

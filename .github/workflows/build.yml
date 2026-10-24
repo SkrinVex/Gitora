@@ -16,7 +16,6 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.x'
           channel: 'stable'
 
       - name: Install dependencies
@@ -32,7 +31,7 @@ jobs:
         run: flutter test
 
   build-windows:
-    name: Build Windows Release
+    name: Build Windows Release & Installer
     needs: test
     runs-on: windows-latest
     steps:
@@ -41,20 +40,78 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.x'
           channel: 'stable'
 
-      - name: Install dependencies
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: pip install pillow
+
+      - name: Generate branding icons
+        run: python tools/generate_icons.py
+
+      - name: Install Flutter dependencies
         run: flutter pub get
 
       - name: Generate localization
         run: flutter gen-l10n
 
-      - name: Build Windows
+      - name: Build Windows Release
         run: flutter build windows --release
 
-      - name: Upload Windows Artifact
+      - name: Compile Inno Setup Installer
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+        with:
+          path: installers/windows/gitora_setup.iss
+
+      - name: Upload Windows Setup Installer
         uses: actions/upload-artifact@v4
         with:
-          name: Gitora-Windows-x64
+          name: Gitora-Windows-Installer
+          path: dist/Gitora-Setup-1.0.0-windows-x64.exe
+
+      - name: Upload Windows Standalone Bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: Gitora-Windows-x64-Bundle
           path: build/windows/x64/runner/Release/
+
+  build-linux:
+    name: Build Linux DEB & AppImage
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Generate localization
+        run: flutter gen-l10n
+
+      - name: Build Linux Release
+        run: flutter build linux --release
+
+      - name: Package DEB
+        run: |
+          chmod +x linux/packaging/build_deb.sh
+          ./linux/packaging/build_deb.sh
+
+      - name: Upload Linux DEB
+        uses: actions/upload-artifact@v4
+        with:
+          name: Gitora-Linux-DEB
+          path: dist/*.deb

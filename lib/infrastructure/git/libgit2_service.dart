@@ -477,6 +477,11 @@ class LibGit2Service implements GitService {
   }
 
   @override
+  Future<void> unstageHunk(String repoPath, String patchContent) async {
+    throw UnsupportedError('Interactive hunk staging requires Git CLI engine');
+  }
+
+  @override
   Future<void> commit(
     String repoPath, {
     required String message,

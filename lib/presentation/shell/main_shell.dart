@@ -19,9 +19,11 @@ import 'package:gitora/presentation/screens/history/history_screen.dart';
 import 'package:gitora/presentation/screens/remotes/remotes_screen.dart';
 import 'package:gitora/presentation/screens/settings/settings_screen.dart';
 import 'package:gitora/presentation/screens/stashes/stashes_screen.dart';
+import 'package:gitora/application/providers/log_provider.dart';
 import 'package:gitora/presentation/shell/status_bar.dart';
 import 'package:gitora/presentation/shell/top_navigation_bar.dart';
 import 'package:gitora/presentation/widgets/command_palette.dart';
+import 'package:gitora/presentation/widgets/output_log_panel.dart';
 
 class MainShell extends ConsumerStatefulWidget {
   const MainShell({super.key});
@@ -33,6 +35,7 @@ class MainShell extends ConsumerStatefulWidget {
 class _MainShellState extends ConsumerState<MainShell> {
   int _currentIndex = 0;
   final FocusNode _focusNode = FocusNode();
+  double _outputPanelHeight = 180.0;
 
   @override
   void dispose() {
@@ -49,6 +52,7 @@ class _MainShellState extends ConsumerState<MainShell> {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final statusAsync = ref.watch(gitStatusProvider);
+    final logState = ref.watch(logProvider);
 
     int uncommittedCount = 0;
     statusAsync.whenData((s) {
@@ -159,6 +163,15 @@ class _MainShellState extends ConsumerState<MainShell> {
                 ],
               ),
             ),
+
+            // Bottom Output & Log Panel (collapsible and resizable)
+            if (logState.isPanelOpen)
+              OutputLogPanel(
+                height: _outputPanelHeight,
+                onHeightChanged: (h) => setState(() => _outputPanelHeight = h),
+                onClose: () =>
+                    ref.read(logProvider.notifier).togglePanel(false),
+              ),
 
             // Bottom Status Bar
             const StatusBar(),

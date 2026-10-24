@@ -39,16 +39,29 @@ class GitDiffHunk {
   /// Formats the hunk into a standard Git patch string for git apply / staging
   String toPatchString(String filePath) {
     final buffer = StringBuffer();
-    buffer.writeln('--- a/$filePath');
-    buffer.writeln('+++ b/$filePath');
-    buffer.writeln(header);
+    final normalizedPath = filePath.replaceAll('\\', '/');
+
+    buffer.write('diff --git a/$normalizedPath b/$normalizedPath\n');
+    if (oldStart == 0 && oldCount == 0) {
+      buffer.write('new file mode 100644\n');
+      buffer.write('--- /dev/null\n');
+      buffer.write('+++ b/$normalizedPath\n');
+    } else {
+      buffer.write('--- a/$normalizedPath\n');
+      buffer.write('+++ b/$normalizedPath\n');
+    }
+
+    final cleanHeader = header.trimRight();
+    buffer.write('$cleanHeader\n');
+
     for (final line in lines) {
+      final cleanText = line.text.replaceAll('\r', '');
       if (line.type == DiffLineType.addition) {
-        buffer.writeln('+${line.text}');
+        buffer.write('+$cleanText\n');
       } else if (line.type == DiffLineType.deletion) {
-        buffer.writeln('-${line.text}');
+        buffer.write('-$cleanText\n');
       } else if (line.type == DiffLineType.context) {
-        buffer.writeln(' ${line.text}');
+        buffer.write(' $cleanText\n');
       }
     }
     return buffer.toString();

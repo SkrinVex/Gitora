@@ -301,6 +301,11 @@ class HybridGitService implements GitService {
   }
 
   @override
+  Future<void> unstageHunk(String repoPath, String patchContent) async {
+    await _cliService.unstageHunk(repoPath, patchContent);
+  }
+
+  @override
   Future<void> commit(
     String repoPath, {
     required String message,

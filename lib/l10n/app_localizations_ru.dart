@@ -483,4 +483,75 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get loading => 'Загрузка...';
+
+  @override
+  String get toggleWordWrap => 'Перенос строк';
+
+  @override
+  String get enableWordWrap => 'Включить перенос строк';
+
+  @override
+  String get disableWordWrap => 'Выключить перенос строк';
+
+  @override
+  String get preferredTerminal => 'Предпочитаемый терминал';
+
+  @override
+  String get terminalAuto => 'Системный по умолчанию (Авто)';
+
+  @override
+  String get terminalWindowsTerminal => 'Windows Terminal';
+
+  @override
+  String get terminalPowerShell => 'PowerShell';
+
+  @override
+  String get terminalCmd => 'Командная строка (cmd)';
+
+  @override
+  String get resetOnboarding => 'Сбросить первоначальную настройку';
+
+  @override
+  String get resetOnboardingConfirm =>
+      'Сбросить первоначальную настройку? Мастер настройки появится при следующем запуске.';
+
+  @override
+  String get onboardingResetNotice =>
+      'Первоначальная настройка сброшена. Перезапустите приложение.';
+
+  @override
+  String get viewLicenses => 'Лицензии зависимостей';
+
+  @override
+  String get errors => 'Ошибки';
+
+  @override
+  String get warnings => 'Предупреждения';
+
+  @override
+  String get output => 'Вывод';
+
+  @override
+  String get filterLogs => 'Фильтр логов...';
+
+  @override
+  String get clearLogs => 'Очистить логи';
+
+  @override
+  String get noLogsRecorded => 'Нет записей в журнале';
+
+  @override
+  String get copyMessage => 'Скопировать сообщение';
+
+  @override
+  String get copyFullReport => 'Скопировать полный отчёт';
+
+  @override
+  String get copiedToClipboard => 'Скопировано в буфер обмена';
+
+  @override
+  String get logs => 'Журнал';
+
+  @override
+  String get gitConfigSaved => 'Конфигурация Git успешно сохранена';
 }

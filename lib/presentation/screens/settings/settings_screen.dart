@@ -353,6 +353,48 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     onSelectionChanged: (set) =>
                         settingsNotifier.setBackendMode(set.first),
                   ),
+
+                  const SizedBox(height: 20),
+
+                  // Preferred Terminal
+                  Text(
+                    l10n.preferredTerminal,
+                    style: theme.textTheme.titleMedium?.copyWith(fontSize: 14),
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<String>(
+                    initialValue: settings.preferredTerminal,
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                    ),
+                    items: [
+                      DropdownMenuItem(
+                        value: 'auto',
+                        child: Text(l10n.terminalAuto),
+                      ),
+                      DropdownMenuItem(
+                        value: 'wt',
+                        child: Text(l10n.terminalWindowsTerminal),
+                      ),
+                      DropdownMenuItem(
+                        value: 'powershell',
+                        child: Text(l10n.terminalPowerShell),
+                      ),
+                      DropdownMenuItem(
+                        value: 'cmd',
+                        child: Text(l10n.terminalCmd),
+                      ),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) {
+                        settingsNotifier.setPreferredTerminal(val);
+                      }
+                    },
+                  ),
                 ],
               ),
             ),
@@ -390,58 +432,85 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           Card(
             child: Padding(
               padding: const EdgeInsets.all(20.0),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const GitoraLogo(size: 48),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          AppConstants.appName,
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                  Row(
+                    children: [
+                      const GitoraLogo(size: 54),
+                      const SizedBox(width: 20),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              AppConstants.appName,
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              AppConstants.appTagline,
+                              style: TextStyle(
+                                color: theme.colorScheme.primary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              '${l10n.version} ${AppConstants.appVersion} • ${AppConstants.productIdentifier}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: theme.colorScheme.outline,
+                              ),
+                            ),
+                            Text(
+                              '${AppConstants.copyright} • Author: ${AppConstants.appAuthor}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: theme.colorScheme.outline,
+                              ),
+                            ),
+                          ],
                         ),
-                        Text(
-                          AppConstants.appTagline,
-                          style: TextStyle(
-                            color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${l10n.version} ${AppConstants.appVersion} • ${AppConstants.productIdentifier}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: theme.colorScheme.outline,
-                          ),
-                        ),
-                        Text(
-                          AppConstants.copyright,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: theme.colorScheme.outline,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  OutlinedButton.icon(
-                    icon: const Icon(Icons.replay, size: 16),
-                    label: const Text('Reset Onboarding'),
-                    onPressed: () {
-                      ref.read(onboardingProvider.notifier).resetOnboarding();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Onboarding reset. Re-open app to see welcome flow.',
-                          ),
+                  const SizedBox(height: 16),
+                  const Divider(),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      OutlinedButton.icon(
+                        icon: const Icon(
+                          Icons.library_books_outlined,
+                          size: 16,
                         ),
-                      );
-                    },
+                        label: Text(l10n.viewLicenses),
+                        onPressed: () {
+                          showLicensePage(
+                            context: context,
+                            applicationName: AppConstants.appName,
+                            applicationVersion: AppConstants.appVersion,
+                            applicationLegalese: AppConstants.copyright,
+                          );
+                        },
+                      ),
+                      const SizedBox(width: 12),
+                      OutlinedButton.icon(
+                        icon: const Icon(Icons.replay, size: 16),
+                        label: Text(l10n.resetOnboarding),
+                        onPressed: () {
+                          ref
+                              .read(onboardingProvider.notifier)
+                              .resetOnboarding();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(l10n.onboardingResetNotice)),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -493,9 +562,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     await git.setUserConfig(name: name, email: email);
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Git configuration saved successfully')),
-      );
+      final l10n = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.gitConfigSaved)));
     }
   }
 }

@@ -262,7 +262,7 @@ class RemotesScreen extends ConsumerWidget {
                                 PopupMenuButton<String>(
                                   icon: const Icon(Icons.more_vert, size: 18),
                                   onSelected: (action) {
-                                    if (action == 'forcePush')
+                                    if (action == 'forcePush') {
                                       _push(
                                         context,
                                         ref,
@@ -270,8 +270,10 @@ class RemotesScreen extends ConsumerWidget {
                                         true,
                                         l10n,
                                       );
-                                    if (action == 'remove')
+                                    }
+                                    if (action == 'remove') {
                                       _removeRemote(context, ref, remote.name);
+                                    }
                                   },
                                   itemBuilder: (context) => [
                                     PopupMenuItem(

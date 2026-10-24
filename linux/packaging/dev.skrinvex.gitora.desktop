@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Gitora
+GenericName=Git Client
+Comment=Powerful Git. Beautifully Simple.
+Exec=gitora %u
+Icon=dev.skrinvex.gitora
+Terminal=false
+Categories=Development;RevisionControl;
+Keywords=git;version;control;gitora;vcs;repository;diff;
+MimeType=x-scheme-handler/gitora;
+StartupWMClass=gitora

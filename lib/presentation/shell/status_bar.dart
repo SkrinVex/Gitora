@@ -3,9 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gitora/application/providers/current_repo_provider.dart';
 import 'package:gitora/application/providers/git_status_provider.dart';
 import 'package:gitora/application/providers/git_tasks_provider.dart';
-import 'package:gitora/application/providers/settings_provider.dart';
 import 'package:gitora/core/theme/app_colors.dart';
-import 'package:gitora/infrastructure/git/hybrid_git_service.dart';
+import 'package:gitora/application/providers/log_provider.dart';
 
 class StatusBar extends ConsumerWidget {
   const StatusBar({super.key});
@@ -15,21 +14,8 @@ class StatusBar extends ConsumerWidget {
     final theme = Theme.of(context);
     final taskState = ref.watch(gitTaskProvider);
     final statusAsync = ref.watch(gitStatusProvider);
-    final settings = ref.watch(settingsProvider);
+    final logState = ref.watch(logProvider);
     final currentRepo = ref.watch(currentRepoProvider);
-
-    String backendText = 'Engine: ';
-    switch (settings.backendMode) {
-      case GitBackendMode.auto:
-        backendText += 'Hybrid (LibGit2 + CLI)';
-        break;
-      case GitBackendMode.libgit2Only:
-        backendText += 'LibGit2';
-        break;
-      case GitBackendMode.cliOnly:
-        backendText += 'Git CLI';
-        break;
-    }
 
     return Container(
       height: 28,
@@ -162,10 +148,51 @@ class StatusBar extends ConsumerWidget {
             ),
           ],
 
-          // Backend text
+          // Output / Logs panel toggle
+          InkWell(
+            onTap: () => ref.read(logProvider.notifier).togglePanel(),
+            borderRadius: BorderRadius.circular(4),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    logState.errorCount > 0
+                        ? Icons.error_outline
+                        : Icons.terminal,
+                    size: 13,
+                    color: logState.errorCount > 0
+                        ? AppColors.gitDeleted
+                        : theme.colorScheme.outline,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    logState.errorCount > 0 ? '${logState.errorCount}' : 'Logs',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: logState.errorCount > 0
+                          ? AppColors.gitDeleted
+                          : theme.colorScheme.outline,
+                      fontWeight: logState.errorCount > 0
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+
+          // by SkrinVex
           Text(
-            backendText,
-            style: TextStyle(fontSize: 11, color: theme.colorScheme.outline),
+            'by SkrinVex',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.primary.withAlpha(200),
+            ),
           ),
         ],
       ),

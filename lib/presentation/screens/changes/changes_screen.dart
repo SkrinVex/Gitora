@@ -11,6 +11,7 @@ import 'package:gitora/l10n/app_localizations.dart';
 import 'package:gitora/presentation/screens/changes/commit_panel.dart';
 import 'package:gitora/presentation/screens/changes/diff_viewer.dart';
 import 'package:gitora/presentation/widgets/confirm_dialog.dart';
+import 'package:gitora/presentation/widgets/resizable_split_view.dart';
 
 class ChangesScreen extends ConsumerStatefulWidget {
   const ChangesScreen({super.key});
@@ -20,8 +21,6 @@ class ChangesScreen extends ConsumerStatefulWidget {
 }
 
 class _ChangesScreenState extends ConsumerState<ChangesScreen> {
-  final double _fileListWidth = 320;
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -55,217 +54,204 @@ class _ChangesScreenState extends ConsumerState<ChangesScreen> {
 
         final allUnstaged = [...status.unstaged, ...status.untracked];
 
-        return Row(
-          children: [
-            // Left sidebar: Files list
-            SizedBox(
-              width: _fileListWidth,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerLow,
-                  border: Border(
-                    right: BorderSide(
-                      color: theme.colorScheme.outlineVariant.withAlpha(80),
-                    ),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Toolbar
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainer,
-                        border: Border(
-                          bottom: BorderSide(
-                            color: theme.colorScheme.outlineVariant.withAlpha(
-                              80,
-                            ),
-                          ),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Text(
-                            l10n.workingTree,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontSize: 14,
-                            ),
-                          ),
-                          const Spacer(),
-                          // Stage All
-                          IconButton(
-                            icon: const Icon(Icons.playlist_add, size: 18),
-                            tooltip: l10n.stageAll,
-                            visualDensity: VisualDensity.compact,
-                            onPressed: allUnstaged.isNotEmpty
-                                ? () => _stageAll()
-                                : null,
-                          ),
-                          // Unstage All
-                          IconButton(
-                            icon: const Icon(Icons.playlist_remove, size: 18),
-                            tooltip: l10n.unstageAll,
-                            visualDensity: VisualDensity.compact,
-                            onPressed: status.staged.isNotEmpty
-                                ? () => _unstageAll()
-                                : null,
-                          ),
-                          // Discard All
-                          IconButton(
-                            icon: const Icon(
-                              Icons.delete_sweep_outlined,
-                              size: 18,
-                            ),
-                            tooltip: l10n.discardAll,
-                            visualDensity: VisualDensity.compact,
-                            onPressed: allUnstaged.isNotEmpty
-                                ? () => _discardAll(l10n)
-                                : null,
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // File list
-                    Expanded(
-                      child: status.isClean
-                          ? Center(
-                              child: Padding(
-                                padding: const EdgeInsets.all(24.0),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.check_circle_outline,
-                                      size: 40,
-                                      color: AppColors.gitAdded,
-                                    ),
-                                    const SizedBox(height: 12),
-                                    Text(
-                                      l10n.noChangesTitle,
-                                      style: theme.textTheme.titleMedium
-                                          ?.copyWith(fontSize: 14),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      l10n.noChangesSubtitle,
-                                      style: theme.textTheme.bodySmall
-                                          ?.copyWith(
-                                            color: theme.colorScheme.outline,
-                                          ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            )
-                          : ListView(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              children: [
-                                // Staged Changes Group
-                                if (status.staged.isNotEmpty) ...[
-                                  _buildGroupHeader(
-                                    title: l10n.stagedChanges,
-                                    count: status.staged.length,
-                                    theme: theme,
-                                    isStaged: true,
-                                  ),
-                                  for (final file in status.staged)
-                                    _buildFileItem(
-                                      file: file,
-                                      isStaged: true,
-                                      isSelected:
-                                          selectedTarget?.filePath ==
-                                              file.path &&
-                                          selectedTarget?.isStaged == true,
-                                      l10n: l10n,
-                                      theme: theme,
-                                    ),
-                                  const SizedBox(height: 12),
-                                ],
-
-                                // Unstaged Changes Group
-                                if (allUnstaged.isNotEmpty) ...[
-                                  _buildGroupHeader(
-                                    title: l10n.unstagedChanges,
-                                    count: allUnstaged.length,
-                                    theme: theme,
-                                    isStaged: false,
-                                  ),
-                                  for (final file in allUnstaged)
-                                    _buildFileItem(
-                                      file: file,
-                                      isStaged: false,
-                                      isSelected:
-                                          selectedTarget?.filePath ==
-                                              file.path &&
-                                          selectedTarget?.isStaged == false,
-                                      l10n: l10n,
-                                      theme: theme,
-                                    ),
-                                ],
-                              ],
-                            ),
-                    ),
-                  ],
+        return ResizableSplitView(
+          storageKey: 'changes_screen_split',
+          axis: Axis.horizontal,
+          defaultRatio: 0.28,
+          minFirstSize: 220,
+          minSecondSize: 400,
+          firstChild: Container(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerLow,
+              border: Border(
+                right: BorderSide(
+                  color: theme.colorScheme.outlineVariant.withAlpha(80),
                 ),
               ),
             ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Toolbar
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainer,
+                    border: Border(
+                      bottom: BorderSide(
+                        color: theme.colorScheme.outlineVariant.withAlpha(80),
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        l10n.workingTree,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontSize: 14,
+                        ),
+                      ),
+                      const Spacer(),
+                      // Stage All
+                      IconButton(
+                        icon: const Icon(Icons.playlist_add, size: 18),
+                        tooltip: l10n.stageAll,
+                        visualDensity: VisualDensity.compact,
+                        onPressed: allUnstaged.isNotEmpty
+                            ? () => _stageAll()
+                            : null,
+                      ),
+                      // Unstage All
+                      IconButton(
+                        icon: const Icon(Icons.playlist_remove, size: 18),
+                        tooltip: l10n.unstageAll,
+                        visualDensity: VisualDensity.compact,
+                        onPressed: status.staged.isNotEmpty
+                            ? () => _unstageAll()
+                            : null,
+                      ),
+                      // Discard All
+                      IconButton(
+                        icon: const Icon(Icons.delete_sweep_outlined, size: 18),
+                        tooltip: l10n.discardAll,
+                        visualDensity: VisualDensity.compact,
+                        onPressed: allUnstaged.isNotEmpty
+                            ? () => _discardAll(l10n)
+                            : null,
+                      ),
+                    ],
+                  ),
+                ),
 
-            // Right side: Diff Viewer and Commit Panel
-            Expanded(
-              child: Column(
-                children: [
-                  Expanded(
-                    child: selectedTarget == null
-                        ? Center(
+                // File list
+                Expanded(
+                  child: status.isClean
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24.0),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  Icons.difference_outlined,
-                                  size: 48,
-                                  color: theme.colorScheme.outlineVariant,
+                                  Icons.check_circle_outline,
+                                  size: 40,
+                                  color: AppColors.gitAdded,
                                 ),
-                                const SizedBox(height: 16),
+                                const SizedBox(height: 12),
                                 Text(
-                                  l10n.noChangesSelected,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                  l10n.noChangesTitle,
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  l10n.noChangesSubtitle,
+                                  style: theme.textTheme.bodySmall?.copyWith(
                                     color: theme.colorScheme.outline,
                                   ),
+                                  textAlign: TextAlign.center,
                                 ),
                               ],
                             ),
-                          )
-                        : diffAsync.when(
-                            loading: () => const Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                            error: (e, _) =>
-                                Center(child: Text('Error loading diff: $e')),
-                            data: (diff) => diff == null
-                                ? const SizedBox.shrink()
-                                : DiffViewer(
-                                    diff: diff,
-                                    isStaged: selectedTarget.isStaged,
-                                  ),
                           ),
-                  ),
+                        )
+                      : ListView(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          children: [
+                            // Staged Changes Group
+                            if (status.staged.isNotEmpty) ...[
+                              _buildGroupHeader(
+                                title: l10n.stagedChanges,
+                                count: status.staged.length,
+                                theme: theme,
+                                isStaged: true,
+                              ),
+                              for (final file in status.staged)
+                                _buildFileItem(
+                                  file: file,
+                                  isStaged: true,
+                                  isSelected:
+                                      selectedTarget?.filePath == file.path &&
+                                      selectedTarget?.isStaged == true,
+                                  l10n: l10n,
+                                  theme: theme,
+                                ),
+                              const SizedBox(height: 12),
+                            ],
 
-                  // Bottom Commit Panel
-                  CommitPanel(
-                    branchName: status.branchName,
-                    stagedCount: status.staged.length,
-                  ),
-                ],
-              ),
+                            // Unstaged Changes Group
+                            if (allUnstaged.isNotEmpty) ...[
+                              _buildGroupHeader(
+                                title: l10n.unstagedChanges,
+                                count: allUnstaged.length,
+                                theme: theme,
+                                isStaged: false,
+                              ),
+                              for (final file in allUnstaged)
+                                _buildFileItem(
+                                  file: file,
+                                  isStaged: false,
+                                  isSelected:
+                                      selectedTarget?.filePath == file.path &&
+                                      selectedTarget?.isStaged == false,
+                                  l10n: l10n,
+                                  theme: theme,
+                                ),
+                            ],
+                          ],
+                        ),
+                ),
+              ],
             ),
-          ],
+          ),
+          secondChild: Column(
+            children: [
+              Expanded(
+                child: selectedTarget == null
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.difference_outlined,
+                              size: 48,
+                              color: theme.colorScheme.outlineVariant,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              l10n.noChangesSelected,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.outline,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : diffAsync.when(
+                        loading: () =>
+                            const Center(child: CircularProgressIndicator()),
+                        error: (e, _) =>
+                            Center(child: Text('Error loading diff: $e')),
+                        data: (diff) => diff == null
+                            ? const SizedBox.shrink()
+                            : DiffViewer(
+                                diff: diff,
+                                isStaged: selectedTarget.isStaged,
+                              ),
+                      ),
+              ),
+
+              // Bottom Commit Panel
+              CommitPanel(
+                branchName: status.branchName,
+                stagedCount: status.staged.length,
+              ),
+            ],
+          ),
         );
       },
     );

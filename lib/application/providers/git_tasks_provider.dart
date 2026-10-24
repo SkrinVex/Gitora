@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gitora/application/providers/log_provider.dart';
 
 class GitTaskState {
   final bool isRunning;
@@ -62,10 +63,21 @@ class GitTaskNotifier extends Notifier<GitTaskState> {
         isRunning: false,
         lastSuccess: '$title completed successfully',
       );
+      ref
+          .read(logProvider.notifier)
+          .logInfo('$title completed successfully', source: 'Git');
       return result;
-    } catch (e) {
+    } catch (e, stackTrace) {
       final err = e.toString().replaceFirst('Exception: ', '');
       state = state.copyWith(isRunning: false, lastError: err);
+      ref
+          .read(logProvider.notifier)
+          .logError(
+            'Error during: $title',
+            details: err,
+            stackTrace: stackTrace,
+            source: 'Git',
+          );
       return null;
     }
   }

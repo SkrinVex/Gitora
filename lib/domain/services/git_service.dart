@@ -43,6 +43,7 @@ abstract class GitService {
   Future<void> discardFileChanges(String repoPath, String filePath);
   Future<void> discardAllChanges(String repoPath);
   Future<void> stageHunk(String repoPath, String patchContent);
+  Future<void> unstageHunk(String repoPath, String patchContent);
 
   Future<void> commit(
     String repoPath, {
