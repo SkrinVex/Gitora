@@ -68,6 +68,7 @@ jobs:
         run: flutter build windows --release
 
       - name: Create dist directory
+        shell: bash
         run: mkdir -p dist
 
       - name: Compile Inno Setup Installer
@@ -77,16 +78,21 @@ jobs:
 
       - name: Upload Windows Setup Installer
         uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: Gitora-Windows-Installer
           path: dist/Gitora-Setup-1.0.0-windows-x64.exe
           if-no-files-found: warn
+          retention-days: 3
 
       - name: Upload Windows Standalone Bundle
         uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: Gitora-Windows-x64-Bundle
           path: build/windows/x64/runner/Release/
+          if-no-files-found: warn
+          retention-days: 3
 
   build-linux:
     name: Build Linux DEB & AppImage
@@ -121,15 +127,21 @@ jobs:
 
       - name: Upload Linux DEB
         uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: Gitora-Linux-DEB
           path: dist/*.deb
+          if-no-files-found: warn
+          retention-days: 3
 
       - name: Upload Linux Standalone Bundle
         uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: Gitora-Linux-x64-Bundle
           path: build/linux/x64/release/bundle/
+          if-no-files-found: warn
+          retention-days: 3
 
   build-macos:
     name: Build macOS Application
@@ -160,6 +172,9 @@ jobs:
 
       - name: Upload macOS Application
         uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: Gitora-macOS-Bundle
           path: dist/Gitora-macOS.zip
+          if-no-files-found: warn
+          retention-days: 3
