@@ -159,9 +159,9 @@ class _CommitPanelState extends ConsumerState<CommitPanel> {
         ? '$summary\n\n$description'
         : summary;
 
-    final success = await ref
+    final result = await ref
         .read(gitTaskProvider.notifier)
-        .run(
+        .run<bool>(
           title: 'Creating commit',
           action: (progress) async {
             final gitService = ref.read(gitServiceProvider);
@@ -170,10 +170,11 @@ class _CommitPanelState extends ConsumerState<CommitPanel> {
               message: fullMessage,
               amend: _isAmend,
             );
+            return true;
           },
         );
 
-    if (success != null && mounted) {
+    if (result == true && mounted) {
       _summaryController.clear();
       _descriptionController.clear();
       setState(() {

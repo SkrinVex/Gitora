@@ -9,6 +9,10 @@ void main() {
   setUp(() async {
     gitService = GitCliService();
     tempDir = await Directory.systemTemp.createTemp('gitora_hunk_test_');
+    await Process.run('git', ['config', 'user.name', 'Gitora Tester'],
+        workingDirectory: tempDir.path);
+    await Process.run('git', ['config', 'user.email', 'test@gitora.dev'],
+        workingDirectory: tempDir.path);
   });
 
   tearDown(() async {

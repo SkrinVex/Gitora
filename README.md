@@ -5,10 +5,18 @@
   <h3>Powerful Git. Beautifully Simple.</h3>
   <p>Полноценный, современный, красивый и производительный кроссплатформенный Git-клиент на Flutter с Material 3 Expressive.</p>
 
-  [![CI Build](https://github.com/skrinvex/gitora/actions/workflows/build.yml/badge.svg)](https://github.com/skrinvex/gitora/actions)
+  [![CI Build](https://github.com/SkrinVex/Gitora/actions/workflows/build.yml/badge.svg)](https://github.com/SkrinVex/Gitora/actions)
   [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
   [![Platform](https://img.shields.io/badge/Platform-Windows%20|%20Linux%20|%20macOS-lightgrey.svg)](#)
 </div>
+
+---
+
+## 📸 Скриншоты интерфейса / Screenshots
+
+<p align="center">
+  <img src="assets/screenshots/gitora_main_screenshot.png" alt="Gitora Desktop Interface" width="100%" />
+</p>
 
 ---
 

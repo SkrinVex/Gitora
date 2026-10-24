@@ -13,6 +13,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Configure Git identity for tests
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -62,6 +67,9 @@ jobs:
       - name: Build Windows Release
         run: flutter build windows --release
 
+      - name: Create dist directory
+        run: mkdir -p dist
+
       - name: Compile Inno Setup Installer
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
         with:
@@ -72,6 +80,7 @@ jobs:
         with:
           name: Gitora-Windows-Installer
           path: dist/Gitora-Setup-1.0.0-windows-x64.exe
+          if-no-files-found: warn
 
       - name: Upload Windows Standalone Bundle
         uses: actions/upload-artifact@v4
@@ -115,3 +124,42 @@ jobs:
         with:
           name: Gitora-Linux-DEB
           path: dist/*.deb
+
+      - name: Upload Linux Standalone Bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: Gitora-Linux-x64-Bundle
+          path: build/linux/x64/release/bundle/
+
+  build-macos:
+    name: Build macOS Application
+    needs: test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Generate localization
+        run: flutter gen-l10n
+
+      - name: Build macOS Release
+        run: flutter build macos --release
+
+      - name: Package macOS Application
+        run: |
+          mkdir -p dist
+          cd build/macos/Build/Products/Release
+          zip -r -y ../../../../../dist/Gitora-macOS.zip Gitora.app
+
+      - name: Upload macOS Application
+        uses: actions/upload-artifact@v4
+        with:
+          name: Gitora-macOS-Bundle
+          path: dist/Gitora-macOS.zip
