@@ -190,6 +190,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
           // Repositories List
           recentAsync.when(
+            skipLoadingOnReload: true,
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (e, _) =>
                 Center(child: Text('Error loading repositories: $e')),
@@ -304,17 +305,22 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     AppLocalizations l10n,
   ) {
     final dateFormat = DateFormat.yMMMd().add_jm();
+    final exists = repo.exists;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Card(
-        color: isActive
+        color: !exists
+            ? theme.colorScheme.errorContainer.withAlpha(20)
+            : isActive
             ? theme.colorScheme.primaryContainer.withAlpha(50)
             : null,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(
-            color: isActive
+            color: !exists
+                ? theme.colorScheme.error.withAlpha(80)
+                : isActive
                 ? theme.colorScheme.primary
                 : theme.colorScheme.outlineVariant.withAlpha(80),
             width: isActive ? 1.5 : 1,
@@ -323,6 +329,39 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
           onTap: () {
+            if (!exists) {
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Row(
+                    children: [
+                      Icon(Icons.warning_amber_rounded, color: Colors.amber),
+                      SizedBox(width: 8),
+                      Text('Repository Not Found'),
+                    ],
+                  ),
+                  content: Text(
+                    'The repository directory was not found on disk:\n\n${repo.path}\n\nIt may have been moved, renamed, or deleted. Would you like to remove it from your recent repositories?',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      child: Text(l10n.cancel),
+                    ),
+                    FilledButton(
+                      onPressed: () {
+                        Navigator.of(ctx).pop();
+                        ref
+                            .read(recentReposProvider.notifier)
+                            .removeRepository(repo.path);
+                      },
+                      child: Text(l10n.removeRecent),
+                    ),
+                  ],
+                ),
+              );
+              return;
+            }
             ref.read(currentRepoProvider.notifier).setRepo(repo.path);
             widget.onNavigate?.call(1); // Navigate to Changes
           },
@@ -331,8 +370,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             child: Row(
               children: [
                 Icon(
-                  Icons.folder,
-                  color: isActive
+                  !exists ? Icons.folder_off_outlined : Icons.folder,
+                  color: !exists
+                      ? theme.colorScheme.error
+                      : isActive
                       ? theme.colorScheme.primary
                       : theme.colorScheme.outline,
                   size: 28,
@@ -344,14 +385,38 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     children: [
                       Row(
                         children: [
-                          Text(
-                            repo.name,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontSize: 14.5,
-                              fontWeight: FontWeight.bold,
+                          Flexible(
+                            child: Text(
+                              repo.name,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.bold,
+                                color: !exists ? theme.colorScheme.error : null,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          if (isActive) ...[
+                          if (!exists) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 1,
+                              ),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.errorContainer,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                'PATH NOT FOUND',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: theme.colorScheme.onErrorContainer,
+                                ),
+                              ),
+                            ),
+                          ] else if (isActive) ...[
                             const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(
@@ -379,7 +444,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         repo.path,
                         style: TextStyle(
                           fontSize: 12,
-                          color: theme.colorScheme.outline,
+                          color: !exists
+                              ? theme.colorScheme.error.withAlpha(180)
+                              : theme.colorScheme.outline,
                           fontFamily: 'monospace',
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -415,42 +482,50 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.folder_open, size: 20),
-                  tooltip: l10n.openInExplorer,
-                  onPressed: () => SystemLauncher.openInExplorer(repo.path),
+                  tooltip: exists ? l10n.openInExplorer : 'Path not found',
+                  onPressed: exists
+                      ? () => SystemLauncher.openInExplorer(repo.path)
+                      : null,
                 ),
                 IconButton(
                   icon: const Icon(Icons.terminal, size: 20),
-                  tooltip: l10n.openInTerminal,
-                  onPressed: () async {
-                    try {
-                      final pref = ref.read(settingsProvider).preferredTerminal;
-                      await SystemLauncher.openInTerminal(
-                        repo.path,
-                        preferredTerminal: pref,
-                      );
-                    } catch (e) {
-                      ref
-                          .read(logProvider.notifier)
-                          .logError(
-                            'Failed to open terminal',
-                            details: e.toString(),
-                            source: 'Terminal',
-                          );
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Failed to open terminal: $e'),
-                            backgroundColor: theme.colorScheme.error,
-                          ),
-                        );
-                      }
-                    }
-                  },
+                  tooltip: exists ? l10n.openInTerminal : 'Path not found',
+                  onPressed: exists
+                      ? () async {
+                          try {
+                            final pref = ref
+                                .read(settingsProvider)
+                                .preferredTerminal;
+                            await SystemLauncher.openInTerminal(
+                              repo.path,
+                              preferredTerminal: pref,
+                            );
+                          } catch (e) {
+                            ref
+                                .read(logProvider.notifier)
+                                .logError(
+                                  'Failed to open terminal',
+                                  details: e.toString(),
+                                  source: 'Terminal',
+                                );
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Failed to open terminal: $e'),
+                                  backgroundColor: theme.colorScheme.error,
+                                ),
+                              );
+                            }
+                          }
+                        }
+                      : null,
                 ),
                 IconButton(
                   icon: const Icon(Icons.code, size: 20),
-                  tooltip: l10n.openInEditor,
-                  onPressed: () => SystemLauncher.openInVSCode(repo.path),
+                  tooltip: exists ? l10n.openInEditor : 'Path not found',
+                  onPressed: exists
+                      ? () => SystemLauncher.openInVSCode(repo.path)
+                      : null,
                 ),
                 IconButton(
                   icon: Icon(

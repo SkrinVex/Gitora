@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gitora/application/providers/current_repo_provider.dart';
 import 'package:gitora/application/providers/git_service_provider.dart';
-import 'package:gitora/application/providers/git_status_provider.dart';
+import 'package:gitora/application/providers/repository_state_provider.dart';
 import 'package:gitora/application/providers/git_tasks_provider.dart';
 import 'package:gitora/application/providers/settings_provider.dart';
 import 'package:gitora/core/theme/app_colors.dart';
@@ -32,15 +32,38 @@ class MainShell extends ConsumerStatefulWidget {
   ConsumerState<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends ConsumerState<MainShell> {
+class _MainShellState extends ConsumerState<MainShell>
+    with WidgetsBindingObserver {
   int _currentIndex = 0;
   final FocusNode _focusNode = FocusNode();
   double _outputPanelHeight = 180.0;
+  DateTime _lastFocusRefresh = DateTime.fromMillisecondsSinceEpoch(0);
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _focusNode.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      final now = DateTime.now();
+      if (now.difference(_lastFocusRefresh) > const Duration(seconds: 1)) {
+        _lastFocusRefresh = now;
+        final currentRepo = ref.read(currentRepoProvider);
+        if (currentRepo != null && currentRepo.isNotEmpty) {
+          ref.read(repositoryStateProvider.notifier).refresh();
+        }
+      }
+    }
   }
 
   void _navigateTo(int index) {
@@ -51,13 +74,10 @@ class _MainShellState extends ConsumerState<MainShell> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final statusAsync = ref.watch(gitStatusProvider);
+    final uncommittedCount = ref.watch(
+      repositoryStateProvider.select((s) => s.totalChanges),
+    );
     final logState = ref.watch(logProvider);
-
-    int uncommittedCount = 0;
-    statusAsync.whenData((s) {
-      if (s != null) uncommittedCount = s.totalChanges;
-    });
 
     final screens = [
       DashboardScreen(onNavigate: _navigateTo),

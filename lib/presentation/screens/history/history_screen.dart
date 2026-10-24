@@ -83,6 +83,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
         // Main area: Commit graph list + Commit Details panel
         Expanded(
           child: historyAsync.when(
+            skipLoadingOnReload: true,
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (e, _) => Center(child: Text('Error loading history: $e')),
             data: (commits) {

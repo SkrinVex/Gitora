@@ -1,11 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gitora/application/providers/current_repo_provider.dart';
 import 'package:gitora/application/providers/git_service_provider.dart';
+import 'package:gitora/application/providers/repository_state_provider.dart';
 import 'package:gitora/domain/models/git_branch.dart';
 
 final gitBranchesProvider = FutureProvider<List<GitBranch>>((ref) async {
   final repoPath = ref.watch(currentRepoProvider);
-  ref.watch(repoStatusRefreshTriggerProvider);
+  ref.watch(
+    repositoryStateProvider.select((s) => '${s.branchName}@${s.headCommit}'),
+  );
 
   if (repoPath == null || repoPath.isEmpty) return [];
 

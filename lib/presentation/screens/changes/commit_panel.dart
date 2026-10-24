@@ -37,8 +37,11 @@ class _CommitPanelState extends ConsumerState<CommitPanel> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final taskState = ref.watch(gitTaskProvider);
     final canCommit =
-        widget.stagedCount > 0 && _summaryController.text.trim().isNotEmpty;
+        widget.stagedCount > 0 &&
+        _summaryController.text.trim().isNotEmpty &&
+        !taskState.isRunning;
 
     return Container(
       padding: const EdgeInsets.all(16.0),
@@ -150,11 +153,13 @@ class _CommitPanelState extends ConsumerState<CommitPanel> {
 
     final summary = _summaryController.text.trim();
     final description = _descriptionController.text.trim();
+    if (summary.isEmpty || widget.stagedCount == 0) return;
+
     final fullMessage = description.isNotEmpty
         ? '$summary\n\n$description'
         : summary;
 
-    await ref
+    final success = await ref
         .read(gitTaskProvider.notifier)
         .run(
           title: 'Creating commit',
@@ -165,16 +170,16 @@ class _CommitPanelState extends ConsumerState<CommitPanel> {
               message: fullMessage,
               amend: _isAmend,
             );
-
-            _summaryController.clear();
-            _descriptionController.clear();
-            setState(() {
-              _isAmend = false;
-              _isExpanded = false;
-            });
-
-            ref.read(currentRepoProvider.notifier).refresh();
           },
         );
+
+    if (success != null && mounted) {
+      _summaryController.clear();
+      _descriptionController.clear();
+      setState(() {
+        _isAmend = false;
+        _isExpanded = false;
+      });
+    }
   }
 }

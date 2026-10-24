@@ -18,52 +18,78 @@ class SystemLauncher {
     final cleanPath = path.replaceAll('/', '\\');
 
     if (Platform.isWindows) {
-      final pref = preferredTerminal?.toLowerCase();
+      final pref = preferredTerminal?.toLowerCase().trim();
 
-      // 1. Windows Terminal if explicitly requested or auto
-      if (pref == 'wt' ||
-          pref == 'windowsterminal' ||
-          pref == 'auto' ||
-          pref == null) {
+      Future<bool> tryLaunch(String executable, List<String> startArgs) async {
         try {
-          final check = await Process.run('where.exe', ['wt.exe']);
-          if (check.exitCode == 0) {
-            await Process.start(
-              'wt.exe',
-              ['-d', cleanPath],
-              workingDirectory: cleanPath,
-              mode: ProcessStartMode.detached,
-            );
-            return;
-          }
-        } catch (_) {}
-      }
-
-      // 2. PowerShell (default on Windows or fallback)
-      if (pref != 'cmd') {
-        try {
-          await Process.start(
-            'powershell.exe',
-            ['-NoExit', '-Command', "Set-Location -LiteralPath '$cleanPath'"],
+          final process = await Process.start(
+            'cmd.exe',
+            ['/c', 'start', '', executable, ...startArgs],
             workingDirectory: cleanPath,
             mode: ProcessStartMode.detached,
           );
-          return;
-        } catch (_) {}
+          return process.pid > 0;
+        } catch (_) {
+          return false;
+        }
       }
 
-      // 3. Command Prompt fallback
-      try {
-        await Process.start(
-          'cmd.exe',
-          ['/k', 'cd /d "$cleanPath"'],
-          workingDirectory: cleanPath,
-          mode: ProcessStartMode.detached,
-        );
-        return;
-      } catch (e) {
-        throw Exception('Failed to launch Windows terminal: $e');
+      Future<bool> hasWt() async {
+        try {
+          final check = await Process.run('where.exe', ['wt.exe']);
+          return check.exitCode == 0;
+        } catch (_) {
+          return false;
+        }
       }
+
+      final escapedForPs = cleanPath.replaceAll("'", "''");
+
+      // 1. User preferred terminal from settings (if specified and not 'auto')
+      if (pref != null && pref.isNotEmpty && pref != 'auto') {
+        if (pref == 'wt' || pref == 'windowsterminal') {
+          if (await hasWt()) {
+            final ok = await tryLaunch('wt.exe', ['-d', cleanPath]);
+            if (ok) return;
+          }
+        } else if (pref == 'powershell' || pref == 'pwsh') {
+          final ok = await tryLaunch('powershell.exe', [
+            '-NoExit',
+            '-Command',
+            "Set-Location -LiteralPath '$escapedForPs'",
+          ]);
+          if (ok) return;
+        } else if (pref == 'cmd') {
+          final ok = await tryLaunch('cmd.exe', ['/k', 'cd /d "$cleanPath"']);
+          if (ok) return;
+        } else {
+          // Custom terminal executable path/name
+          final ok = await tryLaunch(pref, []);
+          if (ok) return;
+        }
+      }
+
+      // 2. Windows Terminal if available
+      if (await hasWt()) {
+        final ok = await tryLaunch('wt.exe', ['-d', cleanPath]);
+        if (ok) return;
+      }
+
+      // 3. PowerShell default
+      final okPs = await tryLaunch('powershell.exe', [
+        '-NoExit',
+        '-Command',
+        "Set-Location -LiteralPath '$escapedForPs'",
+      ]);
+      if (okPs) return;
+
+      // 4. Command Prompt fallback
+      final okCmd = await tryLaunch('cmd.exe', ['/k', 'cd /d "$cleanPath"']);
+      if (okCmd) return;
+
+      throw Exception(
+        'Failed to launch Windows terminal: all candidates (wt.exe, powershell.exe, cmd.exe) failed.',
+      );
     } else if (Platform.isLinux) {
       final pref = preferredTerminal?.trim();
       final candidates = <List<String>>[

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gitora/application/providers/current_repo_provider.dart';
 import 'package:gitora/application/providers/git_service_provider.dart';
+import 'package:gitora/application/providers/repository_state_provider.dart';
 import 'package:gitora/domain/models/git_diff.dart';
 
 class SelectedDiffTarget {
@@ -44,15 +45,34 @@ final selectedDiffTargetProvider =
 final gitDiffProvider = FutureProvider<GitDiffModel?>((ref) async {
   final repoPath = ref.watch(currentRepoProvider);
   final target = ref.watch(selectedDiffTargetProvider);
-  ref.watch(repoStatusRefreshTriggerProvider);
 
   if (repoPath == null || target == null) return null;
+
+  // Historical commit diffs are immutable
+  if (target.commitHash != null) {
+    final gitService = ref.watch(gitServiceProvider);
+    return await gitService.getDiff(
+      repoPath,
+      filePath: target.filePath,
+      isStaged: target.isStaged,
+      commitHash: target.commitHash,
+    );
+  }
+
+  // Working directory or index diff: only re-fetch if this file's status changed
+  ref.watch(
+    repositoryStateProvider.select((s) {
+      final f = (target.isStaged ? s.staged : [...s.unstaged, ...s.untracked])
+          .where((x) => x.path == target.filePath)
+          .firstOrNull;
+      return f == null ? 'missing' : '${f.status}:${f.isStaged}';
+    }),
+  );
 
   final gitService = ref.watch(gitServiceProvider);
   return await gitService.getDiff(
     repoPath,
     filePath: target.filePath,
     isStaged: target.isStaged,
-    commitHash: target.commitHash,
   );
 });

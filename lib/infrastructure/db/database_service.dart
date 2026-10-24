@@ -56,26 +56,46 @@ class DatabaseService {
   }
 
   Future<void> saveRepository(RepositoryItem item) async {
+    final normalizedPath = RepositoryItem.normalizePath(item.path);
     final db = await database;
+
+    // Check existing to preserve isFavorite when opening repository
+    final existing = await db.query(
+      'repositories',
+      columns: ['isFavorite'],
+      where: 'path = ?',
+      whereArgs: [normalizedPath],
+    );
+
+    final isFav = existing.isNotEmpty
+        ? ((existing.first['isFavorite'] as int? ?? 0) == 1 || item.isFavorite)
+        : item.isFavorite;
+
     await db.insert(
       'repositories',
-      item.toMap(),
+      item.copyWith(path: normalizedPath, isFavorite: isFav).toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 
   Future<void> removeRepository(String path) async {
+    final normalizedPath = RepositoryItem.normalizePath(path);
     final db = await database;
-    await db.delete('repositories', where: 'path = ?', whereArgs: [path]);
+    await db.delete(
+      'repositories',
+      where: 'path = ?',
+      whereArgs: [normalizedPath],
+    );
   }
 
   Future<void> toggleFavorite(String path) async {
+    final normalizedPath = RepositoryItem.normalizePath(path);
     final db = await database;
     final results = await db.query(
       'repositories',
       columns: ['isFavorite'],
       where: 'path = ?',
-      whereArgs: [path],
+      whereArgs: [normalizedPath],
     );
 
     if (results.isNotEmpty) {
@@ -84,7 +104,7 @@ class DatabaseService {
         'repositories',
         {'isFavorite': current ? 0 : 1},
         where: 'path = ?',
-        whereArgs: [path],
+        whereArgs: [normalizedPath],
       );
     }
   }

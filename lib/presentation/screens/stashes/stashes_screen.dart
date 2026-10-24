@@ -48,6 +48,7 @@ class StashesScreen extends ConsumerWidget {
           // Stashes List
           Expanded(
             child: stashesAsync.when(
+              skipLoadingOnReload: true,
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(child: Text('Error loading stashes: $e')),
               data: (stashes) {

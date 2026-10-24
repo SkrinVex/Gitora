@@ -1,3 +1,5 @@
+import 'dart:io';
+
 class RepositoryItem {
   final String path;
   final String name;
@@ -10,6 +12,21 @@ class RepositoryItem {
     required this.lastOpened,
     this.isFavorite = false,
   });
+
+  /// Check if the directory actually exists on disk.
+  bool get exists => Directory(path).existsSync();
+
+  /// Canonicalizes path to ensure stable identifier across Windows and Linux.
+  static String normalizePath(String rawPath) {
+    var p = rawPath.trim().replaceAll('\\', '/');
+    while (p.endsWith('/') && p.length > 3) {
+      p = p.substring(0, p.length - 1);
+    }
+    if (Platform.isWindows && p.length >= 2 && p[1] == ':') {
+      p = p[0].toUpperCase() + p.substring(1);
+    }
+    return p;
+  }
 
   RepositoryItem copyWith({
     String? path,
@@ -48,8 +65,10 @@ class RepositoryItem {
       identical(this, other) ||
       other is RepositoryItem &&
           runtimeType == other.runtimeType &&
-          path == other.path;
+          path == other.path &&
+          isFavorite == other.isFavorite &&
+          lastOpened == other.lastOpened;
 
   @override
-  int get hashCode => path.hashCode;
+  int get hashCode => Object.hash(path, isFavorite, lastOpened);
 }

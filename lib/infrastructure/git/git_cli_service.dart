@@ -27,9 +27,15 @@ class GitCliService implements GitService {
     List<String> args, {
     String? workingDirectory,
     bool throwOnError = true,
+    bool noOptionalLocks = false,
   }) async {
     // core.quotepath=false ensures Cyrillic and Unicode file paths are unescaped
-    final fullArgs = ['-c', 'core.quotepath=false', ...args];
+    final fullArgs = [
+      if (noOptionalLocks) '--no-optional-locks',
+      '-c',
+      'core.quotepath=false',
+      ...args,
+    ];
     try {
       final result = await Process.run(
         _customGitPath,
@@ -171,11 +177,11 @@ class GitCliService implements GitService {
 
   @override
   Future<GitStatusResult> getStatus(String repoPath) async {
-    final res = await _run([
-      'status',
-      '--porcelain=v2',
-      '--branch',
-    ], workingDirectory: repoPath);
+    final res = await _run(
+      ['status', '--porcelain=v2', '--branch'],
+      workingDirectory: repoPath,
+      noOptionalLocks: true,
+    );
 
     final lines = res.stdout.toString().split('\n');
     String branch = 'HEAD (detached)';
@@ -186,6 +192,7 @@ class GitCliService implements GitService {
     final staged = <GitFileChange>[];
     final unstaged = <GitFileChange>[];
     final untracked = <GitFileChange>[];
+    final conflicted = <GitFileChange>[];
 
     for (final line in lines) {
       if (line.isEmpty) continue;
@@ -258,15 +265,42 @@ class GitCliService implements GitService {
         final path = parts.length >= 11
             ? parts.sublist(10).join(' ')
             : line.substring(2).trim();
-        unstaged.add(
-          GitFileChange(
-            path: path,
-            status: GitFileStatus.conflicted,
-            isStaged: false,
-          ),
+        final conflictChange = GitFileChange(
+          path: path,
+          status: GitFileStatus.conflicted,
+          isStaged: false,
         );
+        conflicted.add(conflictChange);
+        unstaged.add(conflictChange);
       }
     }
+
+    final gitDir = Directory('$repoPath/.git');
+    bool isMerging = false;
+    bool isRebasing = false;
+    String? headSha;
+
+    try {
+      if (gitDir.existsSync()) {
+        isMerging = File('$repoPath/.git/MERGE_HEAD').existsSync();
+        isRebasing =
+            Directory('$repoPath/.git/rebase-merge').existsSync() ||
+            Directory('$repoPath/.git/rebase-apply').existsSync();
+        final headFile = File('$repoPath/.git/HEAD');
+        if (headFile.existsSync()) {
+          final content = headFile.readAsStringSync().trim();
+          if (content.startsWith('ref: ')) {
+            final refPath = content.substring(5).trim();
+            final refFile = File('$repoPath/.git/$refPath');
+            if (refFile.existsSync()) {
+              headSha = refFile.readAsStringSync().trim();
+            }
+          } else {
+            headSha = content;
+          }
+        }
+      }
+    } catch (_) {}
 
     return GitStatusResult(
       branchName: branch,
@@ -276,6 +310,10 @@ class GitCliService implements GitService {
       staged: staged,
       unstaged: unstaged,
       untracked: untracked,
+      conflicted: conflicted,
+      isMerging: isMerging,
+      isRebasing: isRebasing,
+      headCommit: headSha,
     );
   }
 
@@ -424,6 +462,7 @@ class GitCliService implements GitService {
       args,
       workingDirectory: repoPath,
       throwOnError: false,
+      noOptionalLocks: true,
     );
     final raw = res.stdout.toString();
 

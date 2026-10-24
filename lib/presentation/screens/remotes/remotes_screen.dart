@@ -72,6 +72,7 @@ class RemotesScreen extends ConsumerWidget {
 
           // Sync status banner if configured
           statusAsync.when(
+            skipLoadingOnReload: true,
             loading: () => const SizedBox.shrink(),
             error: (e, st) => const SizedBox.shrink(),
             data: (status) {
@@ -137,6 +138,7 @@ class RemotesScreen extends ConsumerWidget {
           // Remotes list
           Expanded(
             child: remotesAsync.when(
+              skipLoadingOnReload: true,
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(child: Text('Error loading remotes: $e')),
               data: (remotes) {

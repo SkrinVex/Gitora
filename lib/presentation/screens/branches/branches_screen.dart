@@ -95,6 +95,7 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen>
           // Tab views
           Expanded(
             child: branchesAsync.when(
+              skipLoadingOnReload: true,
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) =>
                   Center(child: Text('Error loading branches: $e')),

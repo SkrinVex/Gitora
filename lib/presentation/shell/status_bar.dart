@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gitora/application/providers/current_repo_provider.dart';
-import 'package:gitora/application/providers/git_status_provider.dart';
+import 'package:gitora/application/providers/repository_state_provider.dart';
 import 'package:gitora/application/providers/git_tasks_provider.dart';
 import 'package:gitora/core/theme/app_colors.dart';
 import 'package:gitora/application/providers/log_provider.dart';
@@ -13,7 +13,7 @@ class StatusBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final taskState = ref.watch(gitTaskProvider);
-    final statusAsync = ref.watch(gitStatusProvider);
+    final repoState = ref.watch(repositoryStateProvider);
     final logState = ref.watch(logProvider);
     final currentRepo = ref.watch(currentRepoProvider);
 
@@ -87,64 +87,52 @@ class StatusBar extends ConsumerWidget {
           const Spacer(),
 
           // Status of active repository
-          if (currentRepo != null) ...[
-            statusAsync.when(
-              data: (status) {
-                if (status == null) return const SizedBox.shrink();
-
-                return Row(
-                  children: [
-                    if (status.totalChanges > 0) ...[
-                      Icon(
-                        Icons.edit_note,
-                        size: 14,
-                        color: AppColors.gitModified,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${status.totalChanges} uncommitted',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                    ],
-                    if (status.ahead > 0) ...[
-                      const Icon(
-                        Icons.arrow_upward,
-                        size: 12,
-                        color: AppColors.gitAdded,
-                      ),
-                      Text(
-                        '${status.ahead}',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppColors.gitAdded,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                    ],
-                    if (status.behind > 0) ...[
-                      const Icon(
-                        Icons.arrow_downward,
-                        size: 12,
-                        color: AppColors.gitDeleted,
-                      ),
-                      Text(
-                        '${status.behind}',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppColors.gitDeleted,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                    ],
-                  ],
-                );
-              },
-              loading: () => const SizedBox.shrink(),
-              error: (e, st) => const SizedBox.shrink(),
+          if (currentRepo != null && repoState.repoPath == currentRepo) ...[
+            Row(
+              children: [
+                if (repoState.totalChanges > 0) ...[
+                  Icon(Icons.edit_note, size: 14, color: AppColors.gitModified),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${repoState.totalChanges} uncommitted',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                ],
+                if (repoState.ahead > 0) ...[
+                  const Icon(
+                    Icons.arrow_upward,
+                    size: 12,
+                    color: AppColors.gitAdded,
+                  ),
+                  Text(
+                    '${repoState.ahead}',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.gitAdded,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                ],
+                if (repoState.behind > 0) ...[
+                  const Icon(
+                    Icons.arrow_downward,
+                    size: 12,
+                    color: AppColors.gitDeleted,
+                  ),
+                  Text(
+                    '${repoState.behind}',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.gitDeleted,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                ],
+              ],
             ),
           ],
 

@@ -2,7 +2,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gitora/application/providers/current_repo_provider.dart';
-import 'package:gitora/application/providers/git_status_provider.dart';
+import 'package:gitora/application/providers/repository_state_provider.dart';
 import 'package:gitora/application/providers/recent_repos_provider.dart';
 import 'package:gitora/application/providers/log_provider.dart';
 import 'package:gitora/application/providers/settings_provider.dart';
@@ -26,7 +26,9 @@ class TopNavigationBar extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final currentRepo = ref.watch(currentRepoProvider);
-    final statusAsync = ref.watch(gitStatusProvider);
+    final branchName = ref.watch(
+      repositoryStateProvider.select((s) => s.branchName),
+    );
     final recentRepos = ref.watch(recentReposProvider);
 
     String repoName = 'No repository';
@@ -180,52 +182,44 @@ class TopNavigationBar extends ConsumerWidget {
           ),
 
           // Active Branch Pill
-          if (currentRepo != null) ...[
+          if (currentRepo != null && branchName.isNotEmpty) ...[
             const SizedBox(width: 10),
-            statusAsync.when(
-              data: (status) => status != null
-                  ? InkWell(
-                      onTap: () => onNavigate(3), // Navigate to Branches
-                      borderRadius: BorderRadius.circular(8),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
+            InkWell(
+              onTap: () => onNavigate(3), // Navigate to Branches
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.secondaryContainer.withAlpha(120),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.fork_right,
+                      size: 15,
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(width: 6),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 160),
+                      child: Text(
+                        branchName,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12.5,
+                          color: theme.colorScheme.onSecondaryContainer,
                         ),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.secondaryContainer.withAlpha(
-                            120,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.fork_right,
-                              size: 15,
-                              color: theme.colorScheme.primary,
-                            ),
-                            const SizedBox(width: 6),
-                            ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 160),
-                              child: Text(
-                                status.branchName,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12.5,
-                                  color: theme.colorScheme.onSecondaryContainer,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    )
-                  : const SizedBox.shrink(),
-              loading: () => const SizedBox.shrink(),
-              error: (e, st) => const SizedBox.shrink(),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
 

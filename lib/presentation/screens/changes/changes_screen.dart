@@ -30,6 +30,7 @@ class _ChangesScreenState extends ConsumerState<ChangesScreen> {
     final diffAsync = ref.watch(gitDiffProvider);
 
     return statusAsync.when(
+      skipLoadingOnReload: true,
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(
         child: Padding(
@@ -160,6 +161,9 @@ class _ChangesScreenState extends ConsumerState<ChangesScreen> {
                           ),
                         )
                       : ListView(
+                          key: const PageStorageKey<String>(
+                            'changes_file_list',
+                          ),
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           children: [
                             // Staged Changes Group
@@ -232,6 +236,7 @@ class _ChangesScreenState extends ConsumerState<ChangesScreen> {
                         ),
                       )
                     : diffAsync.when(
+                        skipLoadingOnReload: true,
                         loading: () =>
                             const Center(child: CircularProgressIndicator()),
                         error: (e, _) =>
@@ -247,6 +252,7 @@ class _ChangesScreenState extends ConsumerState<ChangesScreen> {
 
               // Bottom Commit Panel
               CommitPanel(
+                key: const PageStorageKey<String>('commit_panel'),
                 branchName: status.branchName,
                 stagedCount: status.staged.length,
               ),
@@ -428,64 +434,100 @@ class _ChangesScreenState extends ConsumerState<ChangesScreen> {
     final repoPath = ref.read(currentRepoProvider);
     if (repoPath == null) return;
 
-    await ref
+    final success = await ref
         .read(gitTaskProvider.notifier)
         .run(
           title: 'Staging file',
           action: (progress) async {
             final gitService = ref.read(gitServiceProvider);
             await gitService.stageFile(repoPath, filePath);
-            ref.read(currentRepoProvider.notifier).refresh();
           },
         );
+
+    if (success != null && mounted) {
+      final currentTarget = ref.read(selectedDiffTargetProvider);
+      if (currentTarget?.filePath == filePath) {
+        ref.read(selectedDiffTargetProvider.notifier).state =
+            SelectedDiffTarget(filePath: filePath, isStaged: true);
+      }
+    }
   }
 
   Future<void> _unstageFile(String filePath) async {
     final repoPath = ref.read(currentRepoProvider);
     if (repoPath == null) return;
 
-    await ref
+    final success = await ref
         .read(gitTaskProvider.notifier)
         .run(
           title: 'Unstaging file',
           action: (progress) async {
             final gitService = ref.read(gitServiceProvider);
             await gitService.unstageFile(repoPath, filePath);
-            ref.read(currentRepoProvider.notifier).refresh();
           },
         );
+
+    if (success != null && mounted) {
+      final currentTarget = ref.read(selectedDiffTargetProvider);
+      if (currentTarget?.filePath == filePath) {
+        ref.read(selectedDiffTargetProvider.notifier).state =
+            SelectedDiffTarget(filePath: filePath, isStaged: false);
+      }
+    }
   }
 
   Future<void> _stageAll() async {
     final repoPath = ref.read(currentRepoProvider);
     if (repoPath == null) return;
 
-    await ref
+    final success = await ref
         .read(gitTaskProvider.notifier)
         .run(
           title: 'Staging all changes',
           action: (progress) async {
             final gitService = ref.read(gitServiceProvider);
             await gitService.stageAll(repoPath);
-            ref.read(currentRepoProvider.notifier).refresh();
           },
         );
+
+    if (success != null && mounted) {
+      final currentTarget = ref.read(selectedDiffTargetProvider);
+      if (currentTarget != null && !currentTarget.isStaged) {
+        ref
+            .read(selectedDiffTargetProvider.notifier)
+            .state = SelectedDiffTarget(
+          filePath: currentTarget.filePath,
+          isStaged: true,
+        );
+      }
+    }
   }
 
   Future<void> _unstageAll() async {
     final repoPath = ref.read(currentRepoProvider);
     if (repoPath == null) return;
 
-    await ref
+    final success = await ref
         .read(gitTaskProvider.notifier)
         .run(
           title: 'Unstaging all changes',
           action: (progress) async {
             final gitService = ref.read(gitServiceProvider);
             await gitService.unstageAll(repoPath);
-            ref.read(currentRepoProvider.notifier).refresh();
           },
         );
+
+    if (success != null && mounted) {
+      final currentTarget = ref.read(selectedDiffTargetProvider);
+      if (currentTarget != null && currentTarget.isStaged) {
+        ref
+            .read(selectedDiffTargetProvider.notifier)
+            .state = SelectedDiffTarget(
+          filePath: currentTarget.filePath,
+          isStaged: false,
+        );
+      }
+    }
   }
 
   Future<void> _discardFile(String filePath, AppLocalizations l10n) async {
@@ -502,16 +544,22 @@ class _ChangesScreenState extends ConsumerState<ChangesScreen> {
     final repoPath = ref.read(currentRepoProvider);
     if (repoPath == null) return;
 
-    await ref
+    final success = await ref
         .read(gitTaskProvider.notifier)
         .run(
           title: 'Discarding file changes',
           action: (progress) async {
             final gitService = ref.read(gitServiceProvider);
             await gitService.discardFileChanges(repoPath, filePath);
-            ref.read(currentRepoProvider.notifier).refresh();
           },
         );
+
+    if (success != null && mounted) {
+      final currentTarget = ref.read(selectedDiffTargetProvider);
+      if (currentTarget?.filePath == filePath) {
+        ref.read(selectedDiffTargetProvider.notifier).state = null;
+      }
+    }
   }
 
   Future<void> _discardAll(AppLocalizations l10n) async {
@@ -528,15 +576,18 @@ class _ChangesScreenState extends ConsumerState<ChangesScreen> {
     final repoPath = ref.read(currentRepoProvider);
     if (repoPath == null) return;
 
-    await ref
+    final success = await ref
         .read(gitTaskProvider.notifier)
         .run(
           title: 'Discarding all changes',
           action: (progress) async {
             final gitService = ref.read(gitServiceProvider);
             await gitService.discardAllChanges(repoPath);
-            ref.read(currentRepoProvider.notifier).refresh();
           },
         );
+
+    if (success != null && mounted) {
+      ref.read(selectedDiffTargetProvider.notifier).state = null;
+    }
   }
 }
