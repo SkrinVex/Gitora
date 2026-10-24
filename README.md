@@ -14,9 +14,21 @@
 
 ## 📸 Скриншоты интерфейса / Screenshots
 
-<p align="center">
-  <img src="assets/screenshots/gitora_main_screenshot.png" alt="Gitora Desktop Interface" width="100%" />
-</p>
+### Gitora — History
+
+![Gitora commit history](docs/screenshots/gitora-history.png)
+
+### Changes & Diff
+
+![Gitora changes and diff](docs/screenshots/gitora-changes.png)
+
+### Branch Management
+
+![Gitora branches](docs/screenshots/gitora-branches.png)
+
+### Settings & Customization
+
+![Gitora settings](docs/screenshots/gitora-settings.png)
 
 ---
 
