@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ main, master ]
 
+permissions:
+  contents: write
+
 jobs:
   test:
     name: Test & Analyze
@@ -76,6 +79,25 @@ jobs:
         with:
           path: installers/windows/gitora_setup.iss
 
+      - name: Package Windows Standalone ZIP
+        shell: bash
+        run: |
+          cd build/windows/x64/runner/Release
+          tar -a -c -f ../../../../../dist/Gitora-Windows-x64.zip *
+
+      - name: Publish Windows Assets to GitHub Release
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        continue-on-error: true
+        with:
+          tag_name: "v1.0.0"
+          name: "Gitora v1.0.0 — Official Release"
+          draft: false
+          prerelease: false
+          files: |
+            dist/Gitora-Setup-1.0.0-windows-x64.exe
+            dist/Gitora-Windows-x64.zip
+
       - name: Upload Windows Setup Installer
         uses: actions/upload-artifact@v4
         continue-on-error: true
@@ -125,6 +147,24 @@ jobs:
           chmod +x linux/packaging/build_deb.sh
           ./linux/packaging/build_deb.sh
 
+      - name: Package Standalone Tarball with Installer
+        run: |
+          chmod +x linux/packaging/build_tarball.sh
+          ./linux/packaging/build_tarball.sh
+
+      - name: Publish Linux Assets to GitHub Release
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        continue-on-error: true
+        with:
+          tag_name: "v1.0.0"
+          name: "Gitora v1.0.0 — Official Release"
+          draft: false
+          prerelease: false
+          files: |
+            dist/*.deb
+            dist/Gitora-Linux-x64.tar.gz
+
       - name: Upload Linux DEB
         uses: actions/upload-artifact@v4
         continue-on-error: true
@@ -169,6 +209,18 @@ jobs:
           mkdir -p dist
           cd build/macos/Build/Products/Release
           zip -r -y ../../../../../dist/Gitora-macOS.zip Gitora.app
+
+      - name: Publish macOS Assets to GitHub Release
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        continue-on-error: true
+        with:
+          tag_name: "v1.0.0"
+          name: "Gitora v1.0.0 — Official Release"
+          draft: false
+          prerelease: false
+          files: |
+            dist/Gitora-macOS.zip
 
       - name: Upload macOS Application
         uses: actions/upload-artifact@v4
