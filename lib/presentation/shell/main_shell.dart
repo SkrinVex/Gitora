@@ -105,6 +105,7 @@ class _MainShellState extends ConsumerState<MainShell>
       repositoryStateProvider.select((s) => s.totalChanges),
     );
     final logState = ref.watch(logProvider);
+    final taskState = ref.watch(gitTaskProvider);
 
     final screens = [
       DashboardScreen(onNavigate: _navigateTo),
@@ -134,6 +135,17 @@ class _MainShellState extends ConsumerState<MainShell>
               onOpenCommandPalette: () => _openCommandPalette(context, l10n),
               onNavigate: _navigateTo,
             ),
+
+            // Top Progress Bar for active Git tasks (push, pull, fetch, etc.)
+            if (taskState.isRunning)
+              LinearProgressIndicator(
+                value: taskState.progressPercent,
+                minHeight: 2.5,
+                backgroundColor: theme.colorScheme.primary.withAlpha(25),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  theme.colorScheme.primary,
+                ),
+              ),
 
             // Content Area with NavigationRail
             Expanded(
@@ -202,9 +214,21 @@ class _MainShellState extends ConsumerState<MainShell>
 
                   // Screen body
                   Expanded(
-                    child: IndexedStack(
-                      index: _currentIndex,
-                      children: screens,
+                    child: Stack(
+                      children: [
+                        IndexedStack(
+                          index: _currentIndex,
+                          children: screens,
+                        ),
+
+                        // Floating task activity card during Push or other Git operations
+                        if (taskState.isRunning)
+                          Positioned(
+                            right: 20,
+                            bottom: 20,
+                            child: _buildFloatingProgressCard(theme, taskState),
+                          ),
+                      ],
                     ),
                   ),
                 ],
@@ -429,7 +453,7 @@ class _MainShellState extends ConsumerState<MainShell>
           title: 'Pushing changes',
           action: (progress) async {
             final git = ref.read(gitServiceProvider);
-            await git.push(repoPath);
+            await git.push(repoPath, onProgress: progress);
             ref.read(currentRepoProvider.notifier).refresh();
           },
         );
@@ -445,7 +469,7 @@ class _MainShellState extends ConsumerState<MainShell>
           title: 'Pulling changes',
           action: (progress) async {
             final git = ref.read(gitServiceProvider);
-            await git.pull(repoPath);
+            await git.pull(repoPath, onProgress: progress);
             ref.read(currentRepoProvider.notifier).refresh();
           },
         );
@@ -461,9 +485,104 @@ class _MainShellState extends ConsumerState<MainShell>
           title: 'Fetching changes',
           action: (progress) async {
             final git = ref.read(gitServiceProvider);
-            await git.fetch(repoPath);
+            await git.fetch(repoPath, onProgress: progress);
             ref.read(currentRepoProvider.notifier).refresh();
           },
         );
+  }
+
+  Widget _buildFloatingProgressCard(ThemeData theme, GitTaskState taskState) {
+    final percent = taskState.progressPercent;
+    return Material(
+      elevation: 6,
+      borderRadius: BorderRadius.circular(12),
+      color: theme.colorScheme.surfaceContainerHigh,
+      child: Container(
+        width: 340,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: theme.colorScheme.primary.withAlpha(80),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    value: percent,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    taskState.taskTitle ?? 'Task in progress',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12.5,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (percent != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withAlpha(30),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      '${(percent * 100).toInt()}%',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(3),
+              child: LinearProgressIndicator(
+                value: percent,
+                minHeight: 4,
+                backgroundColor: theme.colorScheme.primary.withAlpha(30),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  theme.colorScheme.primary,
+                ),
+              ),
+            ),
+            if (taskState.progressMessage != null &&
+                taskState.progressMessage!.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Text(
+                taskState.progressMessage!,
+                style: TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 10.5,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 }

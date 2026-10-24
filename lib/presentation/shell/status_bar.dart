@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gitora/application/providers/current_repo_provider.dart';
+import 'package:gitora/application/providers/git_service_provider.dart';
 import 'package:gitora/application/providers/repository_state_provider.dart';
 import 'package:gitora/application/providers/git_tasks_provider.dart';
 import 'package:gitora/core/theme/app_colors.dart';
@@ -37,6 +38,7 @@ class StatusBar extends ConsumerWidget {
               height: 12,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
+                value: taskState.progressPercent,
                 color: theme.colorScheme.primary,
               ),
             ),
@@ -49,14 +51,29 @@ class StatusBar extends ConsumerWidget {
                 color: theme.colorScheme.primary,
               ),
             ),
+            if (taskState.progressPercent != null) ...[
+              const SizedBox(width: 6),
+              Text(
+                '${(taskState.progressPercent! * 100).toInt()}%',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+            ],
             if (taskState.progressMessage != null &&
                 taskState.progressMessage!.isNotEmpty) ...[
               const SizedBox(width: 6),
-              Text(
-                '• ${taskState.progressMessage}',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: theme.colorScheme.outline,
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 320),
+                child: Text(
+                  '• ${taskState.progressMessage}',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: theme.colorScheme.outline,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -103,19 +120,59 @@ class StatusBar extends ConsumerWidget {
                   const SizedBox(width: 12),
                 ],
                 if (repoState.ahead > 0) ...[
-                  const Icon(
-                    Icons.arrow_upward,
-                    size: 12,
-                    color: AppColors.gitAdded,
-                  ),
-                  Text(
-                    '${repoState.ahead}',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.gitAdded,
+                  InkWell(
+                    onTap: () {
+                      final repoPath = ref.read(currentRepoProvider);
+                      if (repoPath != null && !taskState.isRunning) {
+                        ref
+                            .read(gitTaskProvider.notifier)
+                            .run(
+                              title: 'Pushing changes',
+                              action: (progress) async {
+                                final git = ref.read(gitServiceProvider);
+                                await git.push(
+                                  repoPath,
+                                  onProgress: progress,
+                                );
+                                ref
+                                    .read(currentRepoProvider.notifier)
+                                    .refresh();
+                              },
+                            );
+                      }
+                    },
+                    borderRadius: BorderRadius.circular(4),
+                    child: Tooltip(
+                      message:
+                          '${repoState.ahead} commit(s) ahead — click to Push',
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 2,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.arrow_upward,
+                              size: 12,
+                              color: AppColors.gitAdded,
+                            ),
+                            const SizedBox(width: 2),
+                            Text(
+                              '${repoState.ahead} push',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.gitAdded,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 8),
                 ],
                 if (repoState.behind > 0) ...[
                   const Icon(

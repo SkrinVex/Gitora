@@ -514,13 +514,27 @@ class HybridGitService implements GitService {
   }
 
   @override
-  Future<void> fetch(String repoPath, {String? remote}) async {
-    await _cliService.fetch(repoPath, remote: remote);
+  Future<void> fetch(
+    String repoPath, {
+    String? remote,
+    void Function(String message, [double? percent])? onProgress,
+  }) async {
+    await _cliService.fetch(repoPath, remote: remote, onProgress: onProgress);
   }
 
   @override
-  Future<void> pull(String repoPath, {String? remote, String? branch}) async {
-    await _cliService.pull(repoPath, remote: remote, branch: branch);
+  Future<void> pull(
+    String repoPath, {
+    String? remote,
+    String? branch,
+    void Function(String message, [double? percent])? onProgress,
+  }) async {
+    await _cliService.pull(
+      repoPath,
+      remote: remote,
+      branch: branch,
+      onProgress: onProgress,
+    );
   }
 
   @override
@@ -530,6 +544,7 @@ class HybridGitService implements GitService {
     String? branch,
     bool force = false,
     bool setUpstream = false,
+    void Function(String message, [double? percent])? onProgress,
   }) async {
     await _cliService.push(
       repoPath,
@@ -537,6 +552,7 @@ class HybridGitService implements GitService {
       branch: branch,
       force: force,
       setUpstream: setUpstream,
+      onProgress: onProgress,
     );
   }
 

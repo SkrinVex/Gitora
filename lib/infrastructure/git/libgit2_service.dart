@@ -674,14 +674,23 @@ class LibGit2Service implements GitService {
   }
 
   @override
-  Future<void> fetch(String repoPath, {String? remote}) async {
+  Future<void> fetch(
+    String repoPath, {
+    String? remote,
+    void Function(String message, [double? percent])? onProgress,
+  }) async {
     throw UnsupportedError(
       'Network fetch with authentication delegated to GitCliService',
     );
   }
 
   @override
-  Future<void> pull(String repoPath, {String? remote, String? branch}) async {
+  Future<void> pull(
+    String repoPath, {
+    String? remote,
+    String? branch,
+    void Function(String message, [double? percent])? onProgress,
+  }) async {
     throw UnsupportedError(
       'Network pull with authentication delegated to GitCliService',
     );
@@ -694,6 +703,7 @@ class LibGit2Service implements GitService {
     String? branch,
     bool force = false,
     bool setUpstream = false,
+    void Function(String message, [double? percent])? onProgress,
   }) async {
     throw UnsupportedError(
       'Network push with authentication delegated to GitCliService',

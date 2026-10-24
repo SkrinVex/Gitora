@@ -11,30 +11,40 @@ class GitTaskState {
   final bool isRunning;
   final String? taskTitle;
   final String? progressMessage;
+  final double? progressPercent;
   final String? lastError;
   final String? lastSuccess;
+  final DateTime? startedAt;
 
   const GitTaskState({
     this.isRunning = false,
     this.taskTitle,
     this.progressMessage,
+    this.progressPercent,
     this.lastError,
     this.lastSuccess,
+    this.startedAt,
   });
 
   GitTaskState copyWith({
     bool? isRunning,
     String? taskTitle,
     String? progressMessage,
+    double? progressPercent,
+    bool clearPercent = false,
     String? lastError,
     String? lastSuccess,
+    DateTime? startedAt,
   }) {
     return GitTaskState(
       isRunning: isRunning ?? this.isRunning,
-      taskTitle: taskTitle,
-      progressMessage: progressMessage,
+      taskTitle: taskTitle ?? this.taskTitle,
+      progressMessage: progressMessage ?? this.progressMessage,
+      progressPercent:
+          clearPercent ? null : (progressPercent ?? this.progressPercent),
       lastError: lastError,
       lastSuccess: lastSuccess,
+      startedAt: startedAt ?? this.startedAt,
     );
   }
 }
@@ -45,7 +55,9 @@ class GitTaskNotifier extends Notifier<GitTaskState> {
 
   Future<T?> run<T>({
     required String title,
-    required Future<T> Function(void Function(String message) updateProgress)
+    required Future<T> Function(
+      void Function(String message, [double? percent]) updateProgress,
+    )
     action,
   }) async {
     // Prevent duplicate concurrent execution of Git tasks
@@ -60,21 +72,25 @@ class GitTaskNotifier extends Notifier<GitTaskState> {
       isRunning: true,
       taskTitle: title,
       progressMessage: '',
+      clearPercent: true,
       lastError: null,
       lastSuccess: null,
+      startedAt: DateTime.now(),
     );
 
     try {
-      final result = await action((msg) {
+      final result = await action((msg, [percent]) {
         state = state.copyWith(
           isRunning: true,
           taskTitle: title,
           progressMessage: msg,
+          progressPercent: percent,
         );
       });
 
       state = state.copyWith(
         isRunning: false,
+        clearPercent: true,
         lastSuccess: '$title completed successfully',
       );
       ref
@@ -92,7 +108,11 @@ class GitTaskNotifier extends Notifier<GitTaskState> {
       return result;
     } catch (e, stackTrace) {
       final err = e.toString().replaceFirst('Exception: ', '');
-      state = state.copyWith(isRunning: false, lastError: err);
+      state = state.copyWith(
+        isRunning: false,
+        clearPercent: true,
+        lastError: err,
+      );
       ref
           .read(logProvider.notifier)
           .logError(

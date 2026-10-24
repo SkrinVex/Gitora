@@ -19,6 +19,15 @@ class RemotesScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final remotesAsync = ref.watch(gitRemotesProvider);
     final statusAsync = ref.watch(gitStatusProvider);
+    final taskState = ref.watch(gitTaskProvider);
+
+    final isBusy = taskState.isRunning;
+    final isPushing =
+        isBusy && (taskState.taskTitle?.toLowerCase().contains('push') ?? false);
+    final isPulling =
+        isBusy && (taskState.taskTitle?.toLowerCase().contains('pull') ?? false);
+    final isFetching =
+        isBusy && (taskState.taskTitle?.toLowerCase().contains('fetch') ?? false);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -41,28 +50,64 @@ class RemotesScreen extends ConsumerWidget {
                 const Spacer(),
                 // Global Fetch button
                 OutlinedButton.icon(
-                  onPressed: () => _fetch(ref, null),
-                  icon: const Icon(Icons.refresh, size: 16),
-                  label: Text(l10n.fetch),
+                  onPressed: isBusy ? null : () => _fetch(ref, null),
+                  icon: isFetching
+                      ? SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            value: taskState.progressPercent,
+                          ),
+                        )
+                      : const Icon(Icons.refresh, size: 16),
+                  label: Text(isFetching ? 'Fetching...' : l10n.fetch),
                 ),
                 const SizedBox(width: 8),
                 // Pull button
                 OutlinedButton.icon(
-                  onPressed: () => _pull(ref, null),
-                  icon: const Icon(Icons.arrow_downward, size: 16),
-                  label: Text(l10n.pull),
+                  onPressed: isBusy ? null : () => _pull(ref, null),
+                  icon: isPulling
+                      ? SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            value: taskState.progressPercent,
+                          ),
+                        )
+                      : const Icon(Icons.arrow_downward, size: 16),
+                  label: Text(isPulling ? 'Pulling...' : l10n.pull),
                 ),
                 const SizedBox(width: 8),
                 // Push button
                 FilledButton.icon(
-                  onPressed: () => _push(context, ref, null, false, l10n),
-                  icon: const Icon(Icons.arrow_upward, size: 16),
-                  label: Text(l10n.push),
+                  onPressed: isBusy
+                      ? null
+                      : () => _push(context, ref, null, false, l10n),
+                  icon: isPushing
+                      ? SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            value: taskState.progressPercent,
+                            color: theme.colorScheme.onPrimary,
+                          ),
+                        )
+                      : const Icon(Icons.arrow_upward, size: 16),
+                  label: Text(
+                    isPushing
+                        ? (taskState.progressPercent != null
+                            ? 'Pushing ${(taskState.progressPercent! * 100).toInt()}%'
+                            : 'Pushing...')
+                        : l10n.push,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 // Add Remote button
                 IconButton.filledTonal(
-                  onPressed: () => _addRemote(context, ref),
+                  onPressed: isBusy ? null : () => _addRemote(context, ref),
                   icon: const Icon(Icons.add, size: 18),
                   tooltip: l10n.addRemote,
                 ),
@@ -225,7 +270,9 @@ class RemotesScreen extends ConsumerWidget {
                                 OutlinedButton.icon(
                                   icon: const Icon(Icons.refresh, size: 14),
                                   label: Text(l10n.fetch),
-                                  onPressed: () => _fetch(ref, remote.name),
+                                  onPressed: isBusy
+                                    ? null
+                                    : () => _fetch(ref, remote.name),
                                   style: OutlinedButton.styleFrom(
                                     visualDensity: VisualDensity.compact,
                                   ),
@@ -237,7 +284,9 @@ class RemotesScreen extends ConsumerWidget {
                                     size: 14,
                                   ),
                                   label: Text(l10n.pull),
-                                  onPressed: () => _pull(ref, remote.name),
+                                  onPressed: isBusy
+                                      ? null
+                                      : () => _pull(ref, remote.name),
                                   style: OutlinedButton.styleFrom(
                                     visualDensity: VisualDensity.compact,
                                   ),
@@ -249,13 +298,15 @@ class RemotesScreen extends ConsumerWidget {
                                     size: 14,
                                   ),
                                   label: Text(l10n.push),
-                                  onPressed: () => _push(
-                                    context,
-                                    ref,
-                                    remote.name,
-                                    false,
-                                    l10n,
-                                  ),
+                                  onPressed: isBusy
+                                      ? null
+                                      : () => _push(
+                                            context,
+                                            ref,
+                                            remote.name,
+                                            false,
+                                            l10n,
+                                          ),
                                   style: FilledButton.styleFrom(
                                     visualDensity: VisualDensity.compact,
                                   ),
@@ -414,7 +465,11 @@ class RemotesScreen extends ConsumerWidget {
           title: 'Fetching from ${remote ?? "all remotes"}',
           action: (progress) async {
             final git = ref.read(gitServiceProvider);
-            await git.fetch(repoPath, remote: remote);
+            await git.fetch(
+              repoPath,
+              remote: remote,
+              onProgress: progress,
+            );
             ref.read(currentRepoProvider.notifier).refresh();
           },
         );
@@ -430,7 +485,11 @@ class RemotesScreen extends ConsumerWidget {
           title: 'Pulling changes',
           action: (progress) async {
             final git = ref.read(gitServiceProvider);
-            await git.pull(repoPath, remote: remote);
+            await git.pull(
+              repoPath,
+              remote: remote,
+              onProgress: progress,
+            );
             ref.read(currentRepoProvider.notifier).refresh();
           },
         );
@@ -463,7 +522,12 @@ class RemotesScreen extends ConsumerWidget {
           title: force ? 'Force pushing changes' : 'Pushing changes',
           action: (progress) async {
             final git = ref.read(gitServiceProvider);
-            await git.push(repoPath, remote: remote, force: force);
+            await git.push(
+              repoPath,
+              remote: remote,
+              force: force,
+              onProgress: progress,
+            );
             ref.read(currentRepoProvider.notifier).refresh();
           },
         );

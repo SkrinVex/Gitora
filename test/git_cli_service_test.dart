@@ -145,9 +145,16 @@ void main() {
     var status = await gitService.getStatus(repoPath);
     expect(status.upstream, isNull);
 
-    // Push with no arguments - should auto-recover and set upstream to origin!
-    await gitService.push(repoPath);
+    // Push with no arguments - should auto-recover, stream progress, and set upstream to origin!
+    final progressMessages = <String>[];
+    await gitService.push(
+      repoPath,
+      onProgress: (msg, [percent]) {
+        progressMessages.add(msg);
+      },
+    );
 
+    expect(progressMessages, isNotEmpty);
     status = await gitService.getStatus(repoPath);
     expect(status.upstream, isNotNull);
     expect(status.upstream, contains('origin/'));

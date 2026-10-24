@@ -81,14 +81,24 @@ abstract class GitService {
     required String url,
   });
   Future<void> removeRemote(String repoPath, String name);
-  Future<void> fetch(String repoPath, {String? remote});
-  Future<void> pull(String repoPath, {String? remote, String? branch});
+  Future<void> fetch(
+    String repoPath, {
+    String? remote,
+    void Function(String message, [double? percent])? onProgress,
+  });
+  Future<void> pull(
+    String repoPath, {
+    String? remote,
+    String? branch,
+    void Function(String message, [double? percent])? onProgress,
+  });
   Future<void> push(
     String repoPath, {
     String? remote,
     String? branch,
     bool force = false,
     bool setUpstream = false,
+    void Function(String message, [double? percent])? onProgress,
   });
 
   Future<List<GitStash>> getStashes(String repoPath);

@@ -62,6 +62,84 @@ class GitCliService implements GitService {
     }
   }
 
+  Future<ProcessResult> _runStreaming(
+    List<String> args, {
+    String? workingDirectory,
+    void Function(String message, [double? percent])? onProgress,
+  }) async {
+    final fullArgs = [
+      '-c',
+      'core.quotepath=false',
+      ...args,
+    ];
+    try {
+      final process = await Process.start(
+        _customGitPath,
+        fullArgs,
+        workingDirectory: workingDirectory,
+      );
+
+      final stdoutBuffer = StringBuffer();
+      final stderrBuffer = StringBuffer();
+
+      void processLine(String rawLine) {
+        final line = rawLine.trim();
+        if (line.isEmpty) return;
+
+        // Parse percentage: e.g. "Writing objects:  45% (9/20)"
+        final match = RegExp(r'(\d+)%').firstMatch(line);
+        double? percent;
+        if (match != null) {
+          final p = int.tryParse(match.group(1) ?? '');
+          if (p != null) {
+            percent = (p / 100.0).clamp(0.0, 1.0);
+          }
+        }
+        onProgress?.call(line, percent);
+      }
+
+      void handleData(String data) {
+        final parts = data.split(RegExp(r'[\r\n]+'));
+        for (final p in parts) {
+          processLine(p);
+        }
+      }
+
+      process.stdout.transform(utf8.decoder).listen((data) {
+        stdoutBuffer.write(data);
+        handleData(data);
+      });
+
+      process.stderr.transform(utf8.decoder).listen((data) {
+        stderrBuffer.write(data);
+        handleData(data);
+      });
+
+      final exitCode = await process.exitCode;
+      final out = stdoutBuffer.toString().trim();
+      final err = stderrBuffer.toString().trim();
+
+      if (exitCode != 0) {
+        throw Exception(
+          err.isNotEmpty
+              ? err
+              : (out.isNotEmpty
+                    ? out
+                    : 'Git command failed (${args.join(" ")}) with code $exitCode'),
+        );
+      }
+
+      return ProcessResult(
+        process.pid,
+        exitCode,
+        stdoutBuffer.toString(),
+        stderrBuffer.toString(),
+      );
+    } on ProcessException catch (e) {
+      throw Exception('Failed to execute git process: ${e.message}');
+    }
+  }
+
   @override
   Future<GitSystemInfo> checkSystemInfo() async {
     bool cliOk = false;
@@ -934,24 +1012,45 @@ class GitCliService implements GitService {
   }
 
   @override
-  Future<void> fetch(String repoPath, {String? remote}) async {
-    final args = ['fetch', '--all', '--prune'];
+  Future<void> fetch(
+    String repoPath, {
+    String? remote,
+    void Function(String message, [double? percent])? onProgress,
+  }) async {
+    onProgress?.call('Fetching changes...', null);
+    final args = ['fetch', '--progress', '--all', '--prune'];
     if (remote != null) {
-      args.replaceRange(1, 2, [remote]);
+      args.replaceRange(2, 3, [remote]);
     }
-    await _run(args, workingDirectory: repoPath);
+    await _runStreaming(
+      args,
+      workingDirectory: repoPath,
+      onProgress: onProgress,
+    );
+    onProgress?.call('Fetch completed', 1.0);
   }
 
   @override
-  Future<void> pull(String repoPath, {String? remote, String? branch}) async {
-    final args = ['pull'];
+  Future<void> pull(
+    String repoPath, {
+    String? remote,
+    String? branch,
+    void Function(String message, [double? percent])? onProgress,
+  }) async {
+    onProgress?.call('Pulling changes...', null);
+    final args = ['pull', '--progress'];
     if (remote != null) {
       args.add(remote);
       if (branch != null) {
         args.add(branch);
       }
     }
-    await _run(args, workingDirectory: repoPath);
+    await _runStreaming(
+      args,
+      workingDirectory: repoPath,
+      onProgress: onProgress,
+    );
+    onProgress?.call('Pull completed', 1.0);
   }
 
   @override
@@ -961,8 +1060,10 @@ class GitCliService implements GitService {
     String? branch,
     bool force = false,
     bool setUpstream = false,
+    void Function(String message, [double? percent])? onProgress,
   }) async {
-    final args = ['push'];
+    onProgress?.call('Connecting to remote...', null);
+    final args = ['push', '--progress'];
     if (force) {
       args.add('--force-with-lease');
     }
@@ -976,7 +1077,12 @@ class GitCliService implements GitService {
       }
     }
     try {
-      await _run(args, workingDirectory: repoPath);
+      await _runStreaming(
+        args,
+        workingDirectory: repoPath,
+        onProgress: onProgress,
+      );
+      onProgress?.call('Push completed', 1.0);
     } catch (e) {
       final err = e.toString();
       // If the current branch has no upstream branch configured,
@@ -984,6 +1090,7 @@ class GitCliService implements GitService {
       if (err.contains('has no upstream branch') ||
           err.contains('no upstream branch') ||
           err.contains('--set-upstream')) {
+        onProgress?.call('Configuring upstream branch...', 0.2);
         final remotes = await getRemotes(repoPath);
         final targetRemote = remote ??
             (remotes.any((r) => r.name == 'origin')
@@ -995,12 +1102,18 @@ class GitCliService implements GitService {
 
         final retryArgs = [
           'push',
+          '--progress',
           if (force) '--force-with-lease',
           '--set-upstream',
           targetRemote,
           targetBranch,
         ];
-        await _run(retryArgs, workingDirectory: repoPath);
+        await _runStreaming(
+          retryArgs,
+          workingDirectory: repoPath,
+          onProgress: onProgress,
+        );
+        onProgress?.call('Push completed', 1.0);
         return;
       }
       rethrow;
